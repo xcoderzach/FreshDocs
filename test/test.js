@@ -8,9 +8,9 @@ exports['test adding things'] = function(beforeExit) {
 
     thing.save(function(docs) {
       Thing.find({published: true}, function(things) {
-         assert.equal("My title", things[0].title);
-         assert.equal(1, things.length);
-         run = true;
+        assert.equal("My title", things[0].get("title"));
+        assert.equal(1, things.length);
+        run = true;
       });
     });
 
@@ -29,13 +29,12 @@ exports['test adding thing updates collection'] = function() {
     Thing.find({published: true}, function(things) {
       var calls = 0;
       thing.save(function() {
-        assert.equal("Myitle", things[0].title);
+        assert.equal("Myitle", things[0].get("title"));
 
         newThing.save(function() {
-          assert.equal("Another title", things[1].title);
+          assert.equal("Another title", things[1].get("title"));
           unpubd.save(function() {
             assert.equal(2, things.length);
-            LiveModel.close();
           });
         });
       });
@@ -44,19 +43,43 @@ exports['test adding thing updates collection'] = function() {
   });
 };
 
-/*
 exports['test removing thing updates collection'] = function() {
-  var thing = new Thing({title:"My title", published: true});
-  //add a thing
-  thing.save(function() {
-    //find the thing
-    Thing.find({published: true}, function(things) {
-      assert.equal(1, things.length);
-      //remove the thing
-      thing.remove(function() {
-        assert.equal(0, things.length);
-      });
-  
-    });  
+  LiveModel("things", function(Thing) {
+    var thing = new Thing({title:"Myitle", published: true});
+    //add a thing
+    thing.save(function() {
+      //find the thing
+      Thing.find({published: true}, function(things) {
+        assert.equal(1, things.length);
+        //remove the thing
+        thing.remove(function() {
+          //no things!
+          assert.equal(0, things.length);
+          LiveModel.close();
+        });
+    
+      });  
+    });
   });
-}; */
+};
+
+exports['test changing a thing updates all instances of the thing'] = function() {
+  LiveModel("things", function(Thing) {
+    var thing = new Thing({title:"Myitle", published: true});
+
+    thing.save(function() {
+      Thing.find({title: "Myitle"}, function(things) {
+        things[0].set({title: "different title"});
+        things[0].save(function() {
+          assert.eql("different title", thing.get("title")); 
+          assert.eql("different title", things[0].get("title")); 
+          LiveModel.close();
+        });
+      }); 
+    });
+  });
+};
+
+after = function() {
+
+};
