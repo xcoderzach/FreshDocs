@@ -55,7 +55,6 @@ exports['test removing thing updates collection'] = function() {
         thing.remove(function() {
           //no things!
           assert.equal(0, things.length);
-          LiveModel.close();
         });
     
       });  
@@ -73,13 +72,35 @@ exports['test changing a thing updates all instances of the thing'] = function()
         things[0].save(function() {
           assert.eql("different title", thing.get("title")); 
           assert.eql("different title", things[0].get("title")); 
-          LiveModel.close();
         });
       }); 
     });
   });
 };
 
-after = function() {
+exports['create events are called'] = function() {
+  LiveModel("things", function(Thing) {
+    var thing = new Thing({title:"Myitle", published: true});
+    //add a thing
+    Thing.find({published: true}, function(things) {
+      things.once("create", function(evtThing) {
+        assert.eql(thing.get("_id"), evtThing.get("_id")); 
+      });
+      thing.save();
+    });
+  }); 
+};
 
+exports['remove events are called'] = function() {
+  LiveModel("things", function(Thing) {
+    var thing = new Thing({title:"Myitle", published: true});
+    Thing.find({published: true}, function(things) {
+      things.once("remove", function(evtId) {
+        assert.eql(thing.get("_id"), evtId); 
+        LiveModel.close();
+      });
+      thing.save();
+      thing.remove();
+    });
+  }); 
 };

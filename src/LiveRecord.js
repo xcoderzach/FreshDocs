@@ -1,7 +1,8 @@
 var LC = require("./LiveCollection"),
     LiveCollection = LC.LiveCollection,
     liveCollections = LC.liveCollections,
-    liveRecords = [];
+    liveRecords = [],
+    noop = function() {};
 
 exports.LiveRecord = function(collection) {
 
@@ -55,7 +56,8 @@ exports.LiveRecord = function(collection) {
           liveCollections.forEach(function(liveCollection) {
             liveCollection._onCreate(new LiveRecord(cursor[0]));
           });
-          fn(); 
+
+          (fn || noop)(); 
         }
       });
     } else {
@@ -84,7 +86,7 @@ exports.LiveRecord = function(collection) {
       liveCollections.forEach(function(liveCollection) {
         liveCollection._onRemove(that.data._id);
       });
-      fn();
+      (fn || noop)();
     });
     return this;
   };
