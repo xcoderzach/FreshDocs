@@ -1,26 +1,44 @@
-var LiveModel = require("../index").LiveModel,
-    assert = require("assert");
+require.paths.unshift('/usr/local/lib/node')
+var LiveModel = require("../index").LiveModel
+  , testCase = require('nodeunit').testCase
+  , DatabaseCleaner = require('/usr/local/lib/node/database-cleaner/lib/database-cleaner') 
+  , databaseCleaner = new DatabaseCleaner("mongodb")
+  , tests = {} 
+  , mongodb = require("mongodb")
+  , Db = mongodb.Db
+  , Server = mongodb.Server
+  , client = new Db('blogTest', new Server("127.0.0.1", 27017, {}))
 
-exports['test adding things'] = function(beforeExit) {
+tests.setUp = function(startTest) {
+  client.open(function(err) {
+    databaseCleaner.clean(client, function() {
+        startTest();
+    });
+  });
+}
+
+tests.tearDown = function(done) {
+  done();
+}
+
+tests['adding things'] = function(test) {
+  test.expect(2)
   LiveModel("things", function(Thing) {
-    var thing = new Thing({title:"My title", published: true});
-    var run = false;
+    var thing = new Thing({title:"My title", published: true})
+    var run = false
 
     thing.save(function(docs) {
       Thing.find({published: true}, function(things) {
-        assert.equal("My title", things[0].get("title"));
-        assert.equal(1, things.length);
-        run = true;
+        test.equal("My title", things[0].get("title"));
+        test.equal(1, things.length);
+        test.done();
       });
-    });
-
-    beforeExit(function(){
-      assert.ok(run, 'Ensure all three timeouts are called');
     });
   });
 };
 
-exports['test adding thing updates collection'] = function() {
+tests['test adding thing updates collection'] = function(test) {
+  test.expect(3);
   LiveModel("things", function(Thing) {
     var thing = new Thing({title:"Myitle", published: true});
     var newThing = new Thing({title:"Another title", published: true});
@@ -29,12 +47,13 @@ exports['test adding thing updates collection'] = function() {
     Thing.find({published: true}, function(things) {
       var calls = 0;
       thing.save(function() {
-        assert.equal("Myitle", things[0].get("title"));
+        test.equal("Myitle", things[0].get("title"));
 
         newThing.save(function() {
-          assert.equal("Another title", things[1].get("title"));
+          test.equal("Another title", things[1].get("title"));
           unpubd.save(function() {
-            assert.equal(2, things.length);
+            test.equal(2, things.length);
+            test.done();
           });
         });
       });
@@ -43,18 +62,16 @@ exports['test adding thing updates collection'] = function() {
   });
 };
 
-exports['test removing thing updates collection'] = function() {
+tests['test removing thing updates collection'] = function(test) {
+  test.expect(2);
   LiveModel("things", function(Thing) {
     var thing = new Thing({title:"Myitle", published: true});
-    //add a thing
     thing.save(function() {
-      //find the thing
       Thing.find({published: true}, function(things) {
-        assert.equal(1, things.length);
-        //remove the thing
+        test.equal(1, things.length);
         thing.remove(function() {
-          //no things!
-          assert.equal(0, things.length);
+          test.equal(0, things.length);
+          test.done();
         });
     
       });  
@@ -62,7 +79,8 @@ exports['test removing thing updates collection'] = function() {
   });
 };
 
-exports['test changing a thing updates all instances of the thing'] = function() {
+tests['test changing a thing updates all instances of the thing'] = function(test) {
+  test.expect(2);
   LiveModel("things", function(Thing) {
     var thing = new Thing({title:"Myitle", published: true});
 
@@ -70,37 +88,43 @@ exports['test changing a thing updates all instances of the thing'] = function()
       Thing.find({title: "Myitle"}, function(things) {
         things[0].set({title: "different title"});
         things[0].save(function() {
-          assert.eql("different title", thing.get("title")); 
-          assert.eql("different title", things[0].get("title")); 
+          test.deepEqual("different title", thing.get("title")); 
+          test.deepEqual("different title", things[0].get("title")); 
+          test.done();
         });
       }); 
     });
   });
 };
 
-exports['create events are called'] = function() {
+tests['create events are called'] = function(test) {
+  test.expect(1);
   LiveModel("things", function(Thing) {
     var thing = new Thing({title:"Myitle", published: true});
     //add a thing
     Thing.find({published: true}, function(things) {
       things.once("create", function(evtThing) {
-        assert.eql(thing.get("_id"), evtThing.get("_id")); 
+        test.deepEqual(thing.get("_id"), evtThing.get("_id")); 
+        test.done();
       });
       thing.save();
     });
   }); 
 };
 
-exports['remove events are called'] = function() {
+tests['remove events are called'] = function(test) {
+  test.expect(1);
   LiveModel("things", function(Thing) {
     var thing = new Thing({title:"Myitle", published: true});
     Thing.find({published: true}, function(things) {
       things.once("remove", function(evtId) {
-        assert.eql(thing.get("_id"), evtId); 
-        LiveModel.close();
+        test.deepEqual(thing.get("_id"), evtId); 
+        test.done();
       });
       thing.save();
       thing.remove();
     });
   }); 
 };
+
+module.exports = testCase(tests);
