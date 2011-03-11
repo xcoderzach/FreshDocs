@@ -1,5 +1,5 @@
 require.paths.unshift('/usr/local/lib/node')
-var LiveModel = require("../index").LiveModel
+var FreshDocuments = require("../index").FreshDocuments
   , testCase = require('nodeunit').testCase
   , DatabaseCleaner = require('/usr/local/lib/node/database-cleaner/lib/database-cleaner') 
   , databaseCleaner = new DatabaseCleaner("mongodb")
@@ -23,7 +23,7 @@ tests.tearDown = function(done) {
 
 tests['adding things'] = function(test) {
   test.expect(2)
-  LiveModel("things", function(Thing) {
+  FreshDocuments("things", function(Thing) {
     var thing = new Thing({title:"My title", published: true})
     var run = false
 
@@ -39,7 +39,7 @@ tests['adding things'] = function(test) {
 
 tests['test adding thing updates collection'] = function(test) {
   test.expect(3)
-  LiveModel("things", function(Thing) {
+  FreshDocuments("things", function(Thing) {
     var thing = new Thing({title:"Myitle", published: true})
       , newThing = new Thing({title:"Another title", published: true})
       , unpubd = new Thing({title:"Not ready", published: false})
@@ -63,7 +63,7 @@ tests['test adding thing updates collection'] = function(test) {
 
 tests['test removing thing updates collection'] = function(test) {
   test.expect(2)
-  LiveModel("things", function(Thing) {
+  FreshDocuments("things", function(Thing) {
     var thing = new Thing({title:"Myitle", published: true})
     thing.save(function() {
       Thing.find({published: true}, function(things) {
@@ -79,7 +79,7 @@ tests['test removing thing updates collection'] = function(test) {
 
 tests['test changing a thing updates all instances of the thing'] = function(test) {
   test.expect(2)
-  LiveModel("things", function(Thing) {
+  FreshDocuments("things", function(Thing) {
     var thing = new Thing({title:"Myitle", published: true})
 
     thing.save(function() {
@@ -97,7 +97,7 @@ tests['test changing a thing updates all instances of the thing'] = function(tes
 
 tests['create events are called'] = function(test) {
   test.expect(1)
-  LiveModel("things", function(Thing) {
+  FreshDocuments("things", function(Thing) {
     var thing = new Thing({title:"Myitle", published: true})
     //add a thing
     Thing.find({published: true}, function(things) {
@@ -112,7 +112,7 @@ tests['create events are called'] = function(test) {
 
 tests['remove events are called'] = function(test) {
   test.expect(1)
-  LiveModel("things", function(Thing) {
+  FreshDocuments("things", function(Thing) {
     var thing = new Thing({title:"Myitle", published: true})
     Thing.find({published: true}, function(things) {
       things.once("remove", function(evtId) {

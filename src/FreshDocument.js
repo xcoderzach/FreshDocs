@@ -1,43 +1,43 @@
-var LiveCollection = require("./LiveCollection").LiveCollection
+var FreshCollection = require("./FreshCollection").FreshCollection
   , noop = function() {}
   , PubHub = require("./ConditionalPublisher").PubHub
-  , liveRecords = []
+  , freshDocuments = []
 
-exports.LiveRecord = function(collection) {
+exports.FreshDocument = function(collection) {
 
-  var LiveRecord = function(data) {
+  var FreshDocument = function(data) {
     var i
     this.data = data
     this._isNew = true
-    liveRecords.push(this)
+    freshDocuments.push(this)
     for(i in this.data) {
       this[i] = this.data[i]
     }
   }
 
-  LiveRecord.find = function(conditions, fn) {
+  FreshDocument.find = function(conditions, fn) {
     collection.find(conditions, function(err, cursor) {
       if(cursor !== null) {
         var arr = []
         cursor.each(function(err, item) {
           if(item !== null) {
-            var rec = new LiveRecord(item)
+            var rec = new FreshDocument(item)
             rec._isNew = false
             arr.push(rec)
           } else {
-            var liveCollection = new LiveCollection(arr, conditions)
-            fn(liveCollection)
+            var freshCollection = new FreshCollection(arr, conditions)
+            fn(freshCollection)
           }
         })
       }
     })
   } 
 
-  LiveRecord.prototype.get = function(key) {
+  FreshDocument.prototype.get = function(key) {
     return this.data[key]
   }
 
-  LiveRecord.prototype.set = function(key, value) {
+  FreshDocument.prototype.set = function(key, value) {
     var i
     if(typeof key === "object") {
       for(i in key) {
@@ -51,21 +51,21 @@ exports.LiveRecord = function(collection) {
     }
   }
 
-  LiveRecord.prototype.save = function(fn) {
+  FreshDocument.prototype.save = function(fn) {
     var that = this
     if(this._isNew) {
       this._isNew = false
       collection.insert(this.data, function(err, cursor) {
         if(cursor !== null) {
-          PubHub.pub(new LiveRecord(that.data), "create")
+          PubHub.pub(new FreshDocument(that.data), "create")
           ;(fn || noop)() 
         }
       })
     } else {
       collection.update({_id: this.data._id}, this.data, function(err, cursor) {
         if(cursor !== null) {
-          liveRecords.forEach(function(liveRecord) {
-            liveRecord._onUpdate(that.data)
+          freshDocuments.forEach(function(freshDocument) {
+            freshDocument._onUpdate(that.data)
           }, this)
           
           ;(fn || noop)() 
@@ -75,14 +75,14 @@ exports.LiveRecord = function(collection) {
     return this
   }
 
-  LiveRecord.prototype._onUpdate = function(item) {
+  FreshDocument.prototype._onUpdate = function(item) {
     var i
     if(this.get("_id").id === item._id.id) {
       this.set(item)
     }
   } 
 
-  LiveRecord.prototype.remove = function(fn) {
+  FreshDocument.prototype.remove = function(fn) {
     var that = this
     collection.remove({"_id": that.data._id}, function() {
       PubHub.pub(that.data, "remove")
@@ -91,5 +91,5 @@ exports.LiveRecord = function(collection) {
     return this
   }
 
-  return LiveRecord
+  return FreshDocument
 } 

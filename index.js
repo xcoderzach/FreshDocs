@@ -1,19 +1,19 @@
 var mongodb = require("mongodb"),
-    Db = mongodb.Db,
-    Server = mongodb.Server, 
-    client = new Db('blogTest', new Server("127.0.0.1", 27017, {})),
-    LiveRecord = require("./src/LiveRecord").LiveRecord
+  Db = mongodb.Db,
+  Server = mongodb.Server, 
+  client = new Db('blogTest', new Server("127.0.0.1", 27017, {})),
+  FreshDocument = require("./src/FreshDocument").FreshDocument
 
-exports.LiveModel = function(name, fn) {
+exports.FreshDocuments = function(name, fn) {
   client.open(function(err) {
     client.collection(name, function(err, collection) {
       if(collection !== null) {
-        fn(LiveRecord(collection))
+        fn(FreshDocument(collection))
       }
     })
   })
 }
 
-exports.LiveModel.close = function() {
+exports.FreshDocuments.close = function() {
   client.close()
 }

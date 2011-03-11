@@ -1,7 +1,7 @@
 var EventEmitter = require("events").EventEmitter
   , sys = require("sys")
   , PubHub = require("./ConditionalPublisher").PubHub
-  , LiveCollection = exports.LiveCollection = function(docs, conditions) {
+  , FreshCollection = exports.FreshCollection = function(docs, conditions) {
 
   var i
     , that = this
@@ -25,16 +25,16 @@ var EventEmitter = require("events").EventEmitter
     }
   })
 }
-sys.inherits(LiveCollection, EventEmitter)
+sys.inherits(FreshCollection, EventEmitter)
 
 
-LiveCollection.prototype._onCreate = function(item) {
+FreshCollection.prototype._onCreate = function(item) {
   ;[].push.call(this, item)
   this.docs.push(item)
   this.emit("create", item)
 }
 
-LiveCollection.prototype._onRemove = function(removed) {
+FreshCollection.prototype._onRemove = function(removed) {
   var i,
       doc
   for(i = 0 ; i < this.docs.length ; i++) {
