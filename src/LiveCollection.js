@@ -1,9 +1,10 @@
 var EventEmitter = require("events").EventEmitter
-var sys = require("sys")
-var liveCollections = exports.liveCollections = []
+  , sys = require("sys")
+  , PubHub = require("./ConditionalPublisher").PubHub
+  , LiveCollection = exports.LiveCollection = function(docs, conditions) {
 
-var LiveCollection = exports.LiveCollection = function(docs, conditions) {
   var i
+    , that = this
 
   this.docs = docs
   this.conditions = conditions
@@ -14,34 +15,34 @@ var LiveCollection = exports.LiveCollection = function(docs, conditions) {
   for(i = 0 ; i < this.docs.length ; i++) {
     this[i] = docs[i]
   }
-  liveCollections.push(this)
+
+  PubHub.sub(conditions, function(doc, type) {
+    if(type === "create") {
+      that._onCreate(doc)
+    }
+    if(type === "remove") {
+      that._onRemove(doc)
+    }
+  })
 }
 sys.inherits(LiveCollection, EventEmitter)
 
 
 LiveCollection.prototype._onCreate = function(item) {
-  var key
-
-  for(key in this.conditions) {
-    if(this.conditions.hasOwnProperty(key) &&
-       item.get(key) !== this.conditions[key]) {
-      return
-    }
-  }
+  ;[].push.call(this, item)
   this.docs.push(item)
-  this[this.length-1] = item
   this.emit("create", item)
 }
 
-LiveCollection.prototype._onRemove = function(id) {
+LiveCollection.prototype._onRemove = function(removed) {
   var i,
       doc
   for(i = 0 ; i < this.docs.length ; i++) {
     doc = this.docs[i]
-    if(doc.get("_id").id === id.id) {
+    if(doc.get("_id").id === removed._id.id) {
       [].splice.call(this, i, 1)
       this.docs.splice(i, 1)
-      this.emit("remove", id)
+      this.emit("remove", removed, i)
     }
   }
 } 

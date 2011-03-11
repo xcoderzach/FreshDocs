@@ -1,15 +1,18 @@
-var LC = require("./LiveCollection")
-  , LiveCollection = LC.LiveCollection
-  , liveCollections = LC.liveCollections
-  , liveRecords = []
+var LiveCollection = require("./LiveCollection").LiveCollection
   , noop = function() {}
+  , PubHub = require("./ConditionalPublisher").PubHub
+  , liveRecords = []
 
 exports.LiveRecord = function(collection) {
 
   var LiveRecord = function(data) {
+    var i
     this.data = data
     this._isNew = true
     liveRecords.push(this)
+    for(i in this.data) {
+      this[i] = this.data[i]
+    }
   }
 
   LiveRecord.find = function(conditions, fn) {
@@ -25,14 +28,14 @@ exports.LiveRecord = function(collection) {
             var liveCollection = new LiveCollection(arr, conditions)
             fn(liveCollection)
           }
-        });
+        })
       }
-    });
-  }; 
+    })
+  } 
 
   LiveRecord.prototype.get = function(key) {
     return this.data[key]
-  };
+  }
 
   LiveRecord.prototype.set = function(key, value) {
     var i
@@ -44,8 +47,9 @@ exports.LiveRecord = function(collection) {
       }
     } else {
       this.data[key] = value
+      this[key] = value
     }
-  };
+  }
 
   LiveRecord.prototype.save = function(fn) {
     var that = this
@@ -53,11 +57,8 @@ exports.LiveRecord = function(collection) {
       this._isNew = false
       collection.insert(this.data, function(err, cursor) {
         if(cursor !== null) {
-
-          liveCollections.forEach(function(liveCollection) {
-            liveCollection._onCreate(new LiveRecord(cursor[0]))
-          })
-          ;(fn || noop)(); 
+          PubHub.pub(new LiveRecord(that.data), "create")
+          ;(fn || noop)() 
         }
       })
     } else {
@@ -66,26 +67,25 @@ exports.LiveRecord = function(collection) {
           liveRecords.forEach(function(liveRecord) {
             liveRecord._onUpdate(that.data)
           }, this)
-          fn() 
+          
+          ;(fn || noop)() 
         }
-      }); 
+      }) 
     }
     return this
-  };
+  }
 
   LiveRecord.prototype._onUpdate = function(item) {
-    var i;
+    var i
     if(this.get("_id").id === item._id.id) {
       this.set(item)
     }
-  }; 
+  } 
 
   LiveRecord.prototype.remove = function(fn) {
     var that = this
     collection.remove({"_id": that.data._id}, function() {
-      liveCollections.forEach(function(liveCollection) {
-        liveCollection._onRemove(that.data._id)
-      })
+      PubHub.pub(that.data, "remove")
       ;(fn || noop)()
     })
     return this

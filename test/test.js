@@ -48,7 +48,6 @@ tests['test adding thing updates collection'] = function(test) {
       var calls = 0
       thing.save(function() {
         test.equal("Myitle", things[0].get("title"))
-
         newThing.save(function() {
           test.equal("Another title", things[1].get("title"))
           unpubd.save(function() {
@@ -73,7 +72,6 @@ tests['test removing thing updates collection'] = function(test) {
           test.equal(0, things.length)
           test.done()
         })
-    
       })  
     })
   })
@@ -118,7 +116,7 @@ tests['remove events are called'] = function(test) {
     var thing = new Thing({title:"Myitle", published: true})
     Thing.find({published: true}, function(things) {
       things.once("remove", function(evtId) {
-        test.deepEqual(thing.get("_id"), evtId) 
+        test.deepEqual(thing.get("_id"), evtId._id) 
         test.done()
       })
       thing.save()
