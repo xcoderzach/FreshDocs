@@ -1,4 +1,4 @@
-var PubHub = exports.PubHub = function(db) {
+var PubHub = function(db) {
    this._subscriptions = []
    this.db = db
 }
@@ -64,3 +64,5 @@ PubHub.prototype.matchesConditions = function(obj, conditions) {
 PubHub.prototype.sub = function(conditions, fn) {
   this._subscriptions.push({conditions: conditions, fn:fn})
 }
+
+exports.PubHub = new PubHub()
