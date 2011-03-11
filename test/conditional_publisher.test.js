@@ -22,7 +22,17 @@ tests['test equals calls publish method'] = function(test) {
   })
   PubHub.pub({x: 20, name: "w00t"})
 }
+ 
+tests['test passing extra args when publishing'] = function(test) {
+  test.expect(1)
 
+  PubHub.sub({x: 91}, function(obj, type) {
+    test.equal("update", type)
+    test.done()
+  })
+  PubHub.pub({x: 91, name: "w00t"}, "update")
+}
+ 
 tests['test inequalities calls publish method'] = function(test) {
   test.expect(3)
 

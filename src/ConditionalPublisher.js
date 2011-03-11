@@ -5,9 +5,11 @@ var PubHub = function(db) {
 
 PubHub.prototype.pub = function(object) {
   var that = this
+    , args = [].slice.call(arguments, 1)
+
   this._subscriptions.forEach(function(sub) {
     if(that.matchesConditions(object, sub.conditions)) {
-      sub.fn(object)
+      sub.fn.apply(this, [object].concat(args))
     }
   })
 }
