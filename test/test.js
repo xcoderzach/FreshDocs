@@ -101,7 +101,7 @@ tests['create events are called'] = function(test) {
     var thing = new Thing({title:"Myitle", published: true})
     //add a thing
     Thing.find({published: true}, function(things) {
-      things.once("create", function(evtThing) {
+      things.once("add", function(evtThing) {
         test.deepEqual(thing.get("_id"), evtThing.get("_id")) 
         test.done()
       })
