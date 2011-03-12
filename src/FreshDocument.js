@@ -1,15 +1,17 @@
 var FreshCollection = require("./FreshCollection").FreshCollection
   , noop = function() {}
   , PubHub = require("./ConditionalPublisher").PubHub
-  , freshDocuments = []
+  , freshDocuments = {}
 
 exports.FreshDocument = function(collection) {
 
   var FreshDocument = function(data) {
     var i
+    if(freshDocuments[data._id]) {
+      return freshDocuments[data._id]
+    }
     this.data = data
     this._isNew = true
-    freshDocuments.push(this)
     for(i in this.data) {
       this[i] = this.data[i]
     }
@@ -17,6 +19,9 @@ exports.FreshDocument = function(collection) {
 
   FreshDocument.find = function(conditions, fn) {
     collection.find(conditions, function(err, cursor) {
+      if(err) {
+        console.log(err.stack)
+      }
       if(cursor !== null) {
         var arr = []
         cursor.each(function(err, item) {
@@ -56,18 +61,23 @@ exports.FreshDocument = function(collection) {
     if(this._isNew) {
       this._isNew = false
       collection.insert(this.data, function(err, cursor) {
+        if(err) {
+          console.log(err.stack)
+        }
         if(cursor !== null) {
-          PubHub.pub(new FreshDocument(that.data), "create")
+          console.log()
+          freshDocuments[cursor[0]._id.id] = that
+          PubHub.pub(that, "create")
           ;(fn || noop)() 
         }
       })
     } else {
       collection.update({_id: this.data._id}, this.data, function(err, cursor) {
+        if(err) {
+          console.log(err.stack)
+        }
         if(cursor !== null) {
-          freshDocuments.forEach(function(freshDocument) {
-            freshDocument._onUpdate(that.data)
-          }, this)
-          
+          freshDocuments[that.data._id]._onUpdate(that.data)
           ;(fn || noop)() 
         }
       }) 

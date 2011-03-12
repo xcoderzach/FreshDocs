@@ -45,7 +45,6 @@ tests['test adding thing updates collection'] = function(test) {
       , unpubd = new Thing({title:"Not ready", published: false})
 
     Thing.find({published: true}, function(things) {
-      var calls = 0
       thing.save(function() {
         test.equal("Myitle", things[0].get("title"))
         newThing.save(function() {
