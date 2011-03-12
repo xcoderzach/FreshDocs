@@ -86,7 +86,6 @@ exports.FreshDocument = function(collection) {
   }
 
   FreshDocument.prototype._onUpdate = function(item) {
-    var i
     if(this.get("_id").id === item._id.id) {
       this.set(item)
     }
@@ -94,8 +93,8 @@ exports.FreshDocument = function(collection) {
 
   FreshDocument.prototype.remove = function(fn) {
     var that = this
-    collection.remove({"_id": that.data._id}, function() {
-      PubHub.pub(that.data, "remove")
+    collection.remove({"_id": this.data._id}, function() {
+      Hub.pub(that.data, "remove")
       ;(fn || noop)()
     })
     return this

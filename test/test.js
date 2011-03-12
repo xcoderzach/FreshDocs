@@ -55,7 +55,6 @@ tests['test adding thing updates collection'] = function(test) {
           })
         })
       })
-
     }) 
   })
 }
