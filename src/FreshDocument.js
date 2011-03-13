@@ -41,16 +41,17 @@ exports.FreshDocument = function(collection) {
   }
 
   FreshDocument.find = function(conditions, fn) {
+    var freshColl = new FreshCollection(conditions)
     collection.find(conditions).toArray(function(err, arr) {
-      var collection = new FreshCollection(conditions)
       if(arr) {
         arr.forEach(function(item) {
           var doc = new FreshDocument(item)
-          collection._addDocument(doc)
+          freshColl._addDocument(doc)
         })
-        fn(collection)
+        fn(freshColl)
       }
     })
+    return freshColl
   } 
 
   FreshDocument.prototype.get = function(key) {

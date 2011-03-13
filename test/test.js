@@ -27,8 +27,8 @@ tests['adding things'] = function(test) {
     , thing = new Thing({title:"My title", published: true})
     , run = false
 
-  thing.save(function(docs) {
-    Thing.find({published: true}, function(things) {
+  thing.save(function() {
+    var things = Thing.find({published: true}, function() {
       test.equal("My title", things[0].get("title"))
       test.equal(1, things.length)
       test.done()
@@ -43,7 +43,7 @@ tests['test adding thing updates collection'] = function(test) {
     , newThing = new Thing({title:"Another title", published: true})
     , unpubd = new Thing({title:"Not ready", published: false})
 
-  Thing.find({published: true}, function(things) {
+  var things = Thing.find({published: true}, function() {
     thing.save(function() {
       test.equal("Myitle", things[0].get("title"))
       newThing.save(function() {
@@ -62,7 +62,7 @@ tests['test removing thing updates collection'] = function(test) {
   var Thing = FreshDocuments("things")
   var thing = new Thing({title:"Myitle", published: true})
   thing.save(function() {
-    Thing.find({published: true}, function(things) {
+    var things = Thing.find({published: true}, function() {
       test.equal(1, things.length)
       thing.remove(function() {
         test.equal(0, things.length)
@@ -78,7 +78,7 @@ tests['test changing a thing updates all instances of the thing'] = function(tes
   var thing = new Thing({title:"Myitle", published: true})
 
   thing.save(function() {
-    Thing.find({title: "Myitle"}, function(things) {
+    var things = Thing.find({title: "Myitle"}, function() {
       things[0].set({title: "different title"})
       things[0].save(function() {
         test.deepEqual("different title", thing.get("title")) 
@@ -94,7 +94,7 @@ tests['create events are called'] = function(test) {
   var Thing = FreshDocuments("things")
   var thing = new Thing({title:"Myitle", published: true})
   //add a thing
-  Thing.find({published: true}, function(things) {
+  var things = Thing.find({published: true}, function() {
     things.once("add", function(evtThing) {
       test.deepEqual(thing.get("_id"), evtThing.get("_id")) 
       test.done()
