@@ -148,4 +148,20 @@ tests['Document should fire event when it gets updated'] = function(test) {
   })
 } 
 
+tests['Collection should fire event when a member gets updated'] = function(test) {
+  test.expect(1)
+  var Thing = FreshDocuments("things")
+  var thing = new Thing({title:"Myitle", published: true})
+  thing.save(function() {
+    var things = Thing.find({published: true}, function() {
+      thing.set({"w00t": "boot"})
+      thing.save()
+      things.on("update", function(newThing) {
+        test.deepEqual(thing.document, newThing.document)
+        test.done()
+      })
+    })
+  })
+}  
+
 module.exports = testCase(tests)

@@ -79,7 +79,7 @@ exports.FreshDocument = function(collection) {
       this._isNew = false
       collection.insert(this.document, function(err, obj) {
         that._indexById()
-        PubHub.pub(that, "create")
+        PubHub.pub(that, "add")
         ;(fn || noop)() 
       })
     } else {

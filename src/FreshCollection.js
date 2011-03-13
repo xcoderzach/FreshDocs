@@ -14,7 +14,7 @@ FreshCollection = exports.FreshCollection = function(conditions) {
   this.__defineSetter__("length", function() {})
 
   PubHub.sub(conditions, function(doc, type) {
-    if(type === "create") {
+    if(type === "add") {
       that._addDocument(doc)
     }
     if(type === "remove") {
@@ -26,11 +26,17 @@ sys.inherits(FreshCollection, EventEmitter)
 
 
 FreshCollection.prototype._addDocument = function(item) {
+  var that = this
   this[this.length] = item
   this.docs.push(item)
+
+  item.on("update", function() {
+    var index = that.docs.indexOf(item)
+    that.emit("update", item, index)
+  }) 
+
   this.emit("add", item)
 }
-
 
 FreshCollection.prototype._removeDocument = function(removed) {
   var i,
