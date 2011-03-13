@@ -109,12 +109,8 @@ tests['remove events are called'] = function(test) {
   var thing = new Thing({title:"Myitle", published: true})
   Thing.find({published: true}, function(things) {
     things.once("remove", function(removed) {
-      try {
-        test.deepEqual(thing.document._id.id, removed.document._id.id) 
-        test.done()
-      } catch(e) {
-        console.log(e.stack)
-      }
+      test.deepEqual(thing.document._id.id, removed.document._id.id) 
+      test.done()
     })
     thing.save()
     thing.remove()
@@ -163,5 +159,16 @@ tests['Collection should fire event when a member gets updated'] = function(test
     })
   })
 }  
+
+tests['test inserting with a self generated _id'] = function(test) {
+  var Thing = FreshDocuments("things")
+  var thing = new Thing({title:"w00t", published: true, _id: {id: "4d7d244deb6eb0505800000a"} })
+  thing.save(function() {
+    var things = Thing.find({title:"w00t"}, function() {
+      test.equal(things[0].document._id.id, "4d7d244deb6eb0505800000a") 
+      test.done()
+    })
+  })
+}
 
 module.exports = testCase(tests)

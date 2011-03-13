@@ -18,17 +18,9 @@ function merge(obj, other) {
 exports.FreshDocument = function(collection) {
 
   var FreshDocument = function(document) {
-    var i
-    if(document._id) {
-      this._isNew = false
-      this.document = document
-      this._indexById()
-      this.pending = {}
-    } else {
-      this._isNew = true
-      this.document = {}
-      this.pending = document
-    }
+    this._isNew = true
+    this.document = {}
+    this.pending = document
   }
   sys.inherits(FreshDocument, EventEmitter)
 
@@ -46,6 +38,10 @@ exports.FreshDocument = function(collection) {
       if(arr) {
         arr.forEach(function(item) {
           var doc = new FreshDocument(item)
+          doc._isNew = false
+          doc.document = doc.pending
+          doc.pending = {}
+          doc._indexById()
           freshColl._addDocument(doc)
         })
         fn(freshColl)
@@ -71,25 +67,36 @@ exports.FreshDocument = function(collection) {
     }
   }
 
+  FreshDocument.prototype.update = function(doc, fn) {
+    var that = this
+    this.document = merge(this.document, doc)
+    collection.update({_id: this.document._id}, this.document, function(err) {
+      freshDocuments[that.document._id].forEach(function(doc) {
+        doc._onUpdate(that)
+      })
+      ;(fn || noop)() 
+    })  
+  }
+
+  FreshDocument.prototype.insert = function(doc, fn) {
+    var that = this
+    this._isNew = false
+    this.document = merge(this.document, doc)
+    collection.insert(this.document, function(err, obj) {
+      that._indexById()
+      PubHub.pub(that, "add")
+      ;(fn || noop)() 
+    }) 
+  }
+
   FreshDocument.prototype.save = function(fn) {
     var that = this
-    this.document = merge(this.document, this.pending)
-    this.pending = {}
     if(this._isNew) {
-      this._isNew = false
-      collection.insert(this.document, function(err, obj) {
-        that._indexById()
-        PubHub.pub(that, "add")
-        ;(fn || noop)() 
-      })
+      this.insert(this.pending, fn)
     } else {
-      collection.update({_id: this.document._id}, this.document, function(err) {
-        freshDocuments[that.document._id].forEach(function(doc) {
-          doc._onUpdate(that)
-        })
-        ;(fn || noop)() 
-      }) 
+      this.update(this.pending, fn)
     }
+    this.pending = {}
     return this
   }
 
