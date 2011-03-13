@@ -32,17 +32,30 @@ exports.FreshDocument = function(collection) {
     } 
   }
 
+  FreshDocument._wrapDocument = function(item) {
+    doc = new FreshDocument(item)
+    doc._isNew = false
+    doc.document = doc.pending
+    doc.pending = {}
+    doc._indexById()
+    return doc
+  }
+
+  FreshDocument.findOne = function(conditions, fn) {
+    collection.findOne(conditions, function(err, item) {
+      var doc = FreshDocument._wrapDocument(item)
+      fn(doc)
+    })
+  }
+
   FreshDocument.find = function(conditions, fn) {
     var freshColl = new FreshCollection(conditions)
+      , that = this
     collection.find(conditions).toArray(function(err, arr) {
       if(arr) {
         arr.forEach(function(item) {
-          var doc = new FreshDocument(item)
-          doc._isNew = false
-          doc.document = doc.pending
-          doc.pending = {}
-          doc._indexById()
-          freshColl._addDocument(doc)
+          var doc = FreshDocument._wrapDocument(item)
+          freshColl._addDocument(doc) 
         })
         fn(freshColl)
       }

@@ -171,4 +171,15 @@ tests['test inserting with a self generated _id'] = function(test) {
   })
 }
 
+tests['test findOne'] = function(test) {
+  var Thing = FreshDocuments("things")
+  var thing = new Thing({title:"w00t", author: "dudeguy"})
+  thing.save(function() {
+    Thing.findOne({title:"w00t"}, function(found) {
+      test.deepEqual(found.document, thing.document)
+      test.done()
+    })
+  })
+} 
+
 module.exports = testCase(tests)
