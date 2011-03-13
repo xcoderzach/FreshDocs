@@ -2,35 +2,59 @@ var FreshCollection = require("./FreshCollection").FreshCollection
   , noop = function() {}
   , PubHub = require("./ConditionalPublisher").PubHub
   , freshDocuments = {}
+  , EventEmitter = require("events").EventEmitter
+  , sys = require("sys")
+function merge(obj, other) {
+  var keys = Object.keys(other)
+    , i
+    , key
+  for (i = 0, len = keys.length; i < len; ++i) {
+    key = keys[i]
+    obj[key] = other[key]
+  }
+  return obj
+}
 
 exports.FreshDocument = function(collection) {
 
-  var FreshDocument = function(data) {
+  var FreshDocument = function(document) {
     var i
-    if(freshDocuments[data._id]) {
-      return freshDocuments[data._id]
+    if(document._id) {
+      this._isNew = false
+      this.document = document
+      this._indexById()
+      this.pending = {}
+    } else {
+      this._isNew = true
+      this.document = {}
+      this.pending = document
     }
-    this.data = data
-    this._isNew = true
-    for(i in this.data) {
-      this[i] = this.data[i]
-    }
+  }
+  sys.inherits(FreshDocument, EventEmitter)
+
+  FreshDocument.prototype._indexById = function() {
+    if(Array.isArray(freshDocuments[this.document._id])) {
+      freshDocuments[this.document._id].push(this)
+    } else {
+      freshDocuments[this.document._id] = [this]
+    } 
   }
 
   FreshDocument.find = function(conditions, fn) {
-    var arr = []
     collection.find(conditions).toArray(function(err, arr) {
-      arr = arr.map(function(item) {
-        var rec = new FreshDocument(item)
-        rec._isNew = false
-        return rec
-      })
-      fn(new FreshCollection(arr, conditions))
+      var collection = new FreshCollection(conditions)
+      if(arr) {
+        arr.forEach(function(item) {
+          var doc = new FreshDocument(item)
+          collection._addDocument(doc)
+        })
+        fn(collection)
+      }
     })
   } 
 
   FreshDocument.prototype.get = function(key) {
-    return this.data[key]
+    return this.pending[key] || this.document[key]
   }
 
   FreshDocument.prototype.set = function(key, value) {
@@ -42,24 +66,26 @@ exports.FreshDocument = function(collection) {
         }
       }
     } else {
-      this.data[key] = value
-      this[key] = value
+      this.pending[key] = value
     }
   }
 
   FreshDocument.prototype.save = function(fn) {
     var that = this
+    this.document = merge(this.document, this.pending)
+    this.pending = {}
     if(this._isNew) {
       this._isNew = false
-      collection.insert(this.data, function(err, obj) {
-
-        freshDocuments[obj._id] = that
+      collection.insert(this.document, function(err, obj) {
+        that._indexById()
         PubHub.pub(that, "create")
         ;(fn || noop)() 
       })
     } else {
-      collection.update({_id: this.data._id}, this.data, function(err, cursor) {
-        freshDocuments[that.data._id]._onUpdate(that.data)
+      collection.update({_id: this.document._id}, this.document, function(err) {
+        freshDocuments[that.document._id].forEach(function(doc) {
+          doc._onUpdate(that)
+        })
         ;(fn || noop)() 
       }) 
     }
@@ -67,15 +93,21 @@ exports.FreshDocument = function(collection) {
   }
 
   FreshDocument.prototype._onUpdate = function(item) {
-    if(this.get("_id").id === item._id.id) {
-      this.set(item)
-    }
+    this.document = item.document
+    this.emit("update")
+  } 
+
+  FreshDocument.prototype._onRemove = function(item) {
+    this.emit("remove")
   } 
 
   FreshDocument.prototype.remove = function(fn) {
     var that = this
-    collection.remove({"_id": this.data._id}, function() {
-      PubHub.pub(that.data, "remove")
+    collection.remove({"_id": this.document._id}, function() {
+      PubHub.pub(that, "remove")
+      freshDocuments[that.document._id].forEach(function(doc) {
+        doc._onRemove(that)
+      })
       ;(fn || noop)()
     })
     return this

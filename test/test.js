@@ -108,13 +108,44 @@ tests['remove events are called'] = function(test) {
   var Thing = FreshDocuments("things")
   var thing = new Thing({title:"Myitle", published: true})
   Thing.find({published: true}, function(things) {
-    things.once("remove", function(evtId) {
-      test.deepEqual(thing.get("_id"), evtId._id) 
-      test.done()
+    things.once("remove", function(removed) {
+      try {
+        test.deepEqual(thing.document._id.id, removed.document._id.id) 
+        test.done()
+      } catch(e) {
+        console.log(e.stack)
+      }
     })
     thing.save()
     thing.remove()
   })
 }
+
+tests['Document should fire event when it gets removed'] = function(test) {
+  test.expect(1)
+  var Thing = FreshDocuments("things")
+  var thing = new Thing({title:"Myitle", published: true})
+  thing.on("remove", function() {
+    test.equal("w00t", "w00t")
+    test.done()
+  })
+  thing.save(function() {
+    thing.remove()
+  })
+}
+ 
+tests['Document should fire event when it gets updated'] = function(test) {
+  test.expect(1)
+  var Thing = FreshDocuments("things")
+  var thing = new Thing({title:"Myitle", published: true})
+  thing.on("update", function() {
+    test.equal("w00t", "w00t")
+    test.done()
+  })
+  thing.save(function() {
+    thing.set({"w00t": "boot"})
+    thing.save()
+  })
+} 
 
 module.exports = testCase(tests)

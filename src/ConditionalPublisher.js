@@ -21,6 +21,7 @@ PubHub.prototype.matchesConditions = function(obj, conditions) {
     , property
     , matches = true
     , compare
+    , obj = obj.document
 
   for(i in conditions) {
     if(conditions.hasOwnProperty(i)) {

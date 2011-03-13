@@ -1,38 +1,50 @@
-var EventEmitter = require("events").EventEmitter
+var EventEmitter = require("events").EventEmitter 
   , sys = require("sys")
   , PubHub = require("./ConditionalPublisher").PubHub
-  , FreshCollection = exports.FreshCollection = function(docs, conditions) {
+  , FreshCollection
+  
+FreshCollection = exports.FreshCollection = function(conditions) {
 
   var i
     , that = this
 
-  this.docs = docs
   this.conditions = conditions
-
-  this.__defineGetter__("length", function() { return docs.length })
+  this.docs = []
+  this.__defineGetter__("length", function() { return this.docs.length })
   this.__defineSetter__("length", function() {})
-
-  for(i = 0 ; i < this.docs.length ; i++) {
-    this[i] = docs[i]
-  }
 
   PubHub.sub(conditions, function(doc, type) {
     if(type === "create") {
-      that._onCreate(doc)
+      that._addDocument(doc)
     }
     if(type === "remove") {
-      that._onRemove(doc)
+      that._removeDocument(doc)
     }
   })
 }
 sys.inherits(FreshCollection, EventEmitter)
 
 
-FreshCollection.prototype._onCreate = function(item) {
-  ;[].push.call(this, item)
+FreshCollection.prototype._addDocument = function(item) {
+  this[this.length] = item
   this.docs.push(item)
   this.emit("add", item)
 }
+
+
+FreshCollection.prototype._removeDocument = function(removed) {
+  var i,
+      doc
+
+  for(i = 0 ; i < this.docs.length ; i++) {
+    doc = this.docs[i]
+    if(doc.document._id.id === removed.document._id.id) {
+      ;[].splice.call(this, i, 1)
+      this.docs.splice(i, 1)
+      this.emit("remove", removed, i)
+    }
+  }
+} 
 
 FreshCollection.prototype.toJSON = function() {
   var arr = []
@@ -41,16 +53,4 @@ FreshCollection.prototype.toJSON = function() {
   })
   return arr
 }
-
-FreshCollection.prototype._onRemove = function(removed) {
-  var i,
-      doc
-  for(i = 0 ; i < this.docs.length ; i++) {
-    doc = this.docs[i]
-    if(doc.get("_id").id === removed._id.id) {
-      [].splice.call(this, i, 1)
-      this.docs.splice(i, 1)
-      this.emit("remove", removed, i)
-    }
-  }
-} 
+ 
