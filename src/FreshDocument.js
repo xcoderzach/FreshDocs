@@ -18,23 +18,14 @@ exports.FreshDocument = function(collection) {
   }
 
   FreshDocument.find = function(conditions, fn) {
-    collection.find(conditions, function(err, cursor) {
-      if(err) {
-        console.log(err.stack)
-      }
-      if(cursor !== null) {
-        var arr = []
-        cursor.each(function(err, item) {
-          if(item !== null) {
-            var rec = new FreshDocument(item)
-            rec._isNew = false
-            arr.push(rec)
-          } else {
-            var freshCollection = new FreshCollection(arr, conditions)
-            fn(freshCollection)
-          }
-        })
-      }
+    var arr = []
+    collection.find(conditions).toArray(function(err, arr) {
+      arr = arr.map(function(item) {
+        var rec = new FreshDocument(item)
+        rec._isNew = false
+        return rec
+      })
+      fn(new FreshCollection(arr, conditions))
     })
   } 
 
@@ -60,26 +51,16 @@ exports.FreshDocument = function(collection) {
     var that = this
     if(this._isNew) {
       this._isNew = false
-      collection.insert(this.data, function(err, cursor) {
-        if(err) {
-          console.log(err.stack)
-        }
-        if(cursor !== null) {
-          console.log()
-          freshDocuments[cursor[0]._id.id] = that
-          PubHub.pub(that, "create")
-          ;(fn || noop)() 
-        }
+      collection.insert(this.data, function(err, obj) {
+
+        freshDocuments[obj._id] = that
+        PubHub.pub(that, "create")
+        ;(fn || noop)() 
       })
     } else {
       collection.update({_id: this.data._id}, this.data, function(err, cursor) {
-        if(err) {
-          console.log(err.stack)
-        }
-        if(cursor !== null) {
-          freshDocuments[that.data._id]._onUpdate(that.data)
-          ;(fn || noop)() 
-        }
+        freshDocuments[that.data._id]._onUpdate(that.data)
+        ;(fn || noop)() 
       }) 
     }
     return this
@@ -94,7 +75,7 @@ exports.FreshDocument = function(collection) {
   FreshDocument.prototype.remove = function(fn) {
     var that = this
     collection.remove({"_id": this.data._id}, function() {
-      Hub.pub(that.data, "remove")
+      PubHub.pub(that.data, "remove")
       ;(fn || noop)()
     })
     return this
