@@ -100,5 +100,9 @@ exports.FreshDocument = function(collection) {
     return this
   }
 
+  FreshDocument.prototype.toJSON = function() {
+    return this.data
+  }
+
   return FreshDocument
 } 

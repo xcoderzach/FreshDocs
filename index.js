@@ -6,7 +6,13 @@ var mongodb = require("mongodb"),
 
 exports.FreshDocuments = function(name, fn) {
   client.open(function(err) {
+    if(err) {
+      console.log(err.stack)
+    }
     client.collection(name, function(err, collection) {
+      if(err) {
+        console.log(err.stack)
+      }
       if(collection !== null) {
         fn(FreshDocument(collection))
       }

@@ -31,7 +31,15 @@ sys.inherits(FreshCollection, EventEmitter)
 FreshCollection.prototype._onCreate = function(item) {
   ;[].push.call(this, item)
   this.docs.push(item)
-  this.emit("create", item)
+  this.emit("add", item)
+}
+
+FreshCollection.prototype.toJSON = function() {
+  var arr = []
+  this.docs.forEach(function(doc) {
+    arr.push(doc.toJSON())
+  })
+  return arr
 }
 
 FreshCollection.prototype._onRemove = function(removed) {
