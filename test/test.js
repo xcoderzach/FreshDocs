@@ -20,7 +20,7 @@ tests.setUp = function(startTest) {
 tests.tearDown = function(done) {
   done()
 }
-
+/*
 tests['adding things'] = function(test) {
   test.expect(2)
   var Thing = FreshDocuments("things")
@@ -255,5 +255,29 @@ tests['test removing maintains limit'] = function(test) {
     }).limit(5)
   })
 } 
+*/
+tests['test sorting'] = function(test) {
+  var Thing = FreshDocuments("things")
+    , i = 0
+
+  Thing.create({order:2}, function() {
+    Thing.create({order:5}, function() {
+      Thing.create({order:3}, function() {
+        Thing.create({order:1}, function() {
+          Thing.create({order:4}, function() {
+            var things = Thing.find({}, function() {
+              test.equal(things[0].get("order"), 1)
+              test.equal(things[1].get("order"), 2)
+              test.equal(things[2].get("order"), 3)
+              test.equal(things[3].get("order"), 4)
+              test.equal(things[4].get("order"), 5)
+              test.done()
+            }).sort({order: 1})
+          })
+        })
+      })
+    })
+  })
+}
  
 module.exports = testCase(tests)

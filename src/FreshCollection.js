@@ -4,7 +4,6 @@ var EventEmitter = require("events").EventEmitter
   , FreshCollection
   
 FreshCollection = exports.FreshCollection = function(conditions, cursor) {
-
   var i
     , that = this
 
@@ -32,13 +31,32 @@ FreshCollection.prototype.limit = function(n) {
   return this
 }
 
+FreshCollection.prototype.sort = function(sort) {
+  this._sort = sort
+  this.cursor.sort(sort)
+  return this
+}
+
 FreshCollection.prototype._addDocument = function(item) {
+  var that = this
+    , i
+    , l
+    , key
   //if limit - length >= 0 don't add
   if(!this._limit || this._limit - this.length > 0) {
-    var that = this
-
-    this[this.length] = item
-    this.docs.push(item)
+    if(!this._sort || this.length == 0) {
+      this[this.length] = item
+      this.docs.push(item)
+    } else {
+      key = Object.keys(this._sort)[0]
+      for(i = 0, l = this.length ; i < l ; i++) {
+        if(this.docs[i].document[key] > item.document[key]) {
+          ;[].splice.call(this, i, 0, item)
+          this.docs.splice(i, 0, item)
+          break;
+        }
+      }
+    }
 
     item.on("update", function() {
       var index = that.docs.indexOf(item)
