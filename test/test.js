@@ -36,6 +36,18 @@ tests['adding things'] = function(test) {
   })
 }
 
+tests['creating things'] = function(test) {
+  test.expect(2)
+  var Thing = FreshDocuments("things")
+  Thing.create({title:"My title", published: true}, function() {
+    var things = Thing.find({published: true}, function() {
+      test.equal("My title", things[0].get("title"))
+      test.equal(1, things.length)
+      test.done()
+    })
+  })
+}  
+
 tests['test adding thing updates collection'] = function(test) {
   test.expect(3)
   var Thing = FreshDocuments("things")
@@ -182,4 +194,114 @@ tests['test findOne'] = function(test) {
   })
 } 
 
+tests['test find with limit'] = function(test) {
+  var Thing = FreshDocuments("things")
+    , i = 0
+    , saveThing = function(done) {
+    if(i < 10) {
+      var thing = new Thing({title:"w00t" + i, awesome:true})
+      thing.save(function() {
+        saveThing(done) 
+      })
+      i++
+    } else {
+      done()
+    }
+  }
+  saveThing(function() {
+    var things = Thing.find({awesome:true}, function() {
+      test.equal(5, things.length)
+      test.done()
+    }).limit(5)
+  })
+} 
+
+tests['test inserting maintains limits'] = function(test) {
+  var Thing = FreshDocuments("things")
+    , i
+    , j = 0
+
+  var things = Thing.find({awesome:true}, function() {
+    for(i = 0 ; i < 10 ; i++) {
+      new Thing({title:"w00t" + i, awesome:true}).save(function() {
+        test.equals(things.length <= 5, true)
+        if(++j == 10) {
+          test.done()
+        }
+      })
+    }
+  }).limit(5)
+}  
+ 
+tests['test removing maintains limit'] = function(test) {
+  var Thing = FreshDocuments("things")
+    , i = 0
+    , saveThing = function(done) {
+    if(i < 10) {
+      var thing = new Thing({title:"w00t" + i, awesome:true})
+      thing.save(function() { saveThing(done) })
+      i++
+    } else {
+      done()
+    }
+  }
+  saveThing(function() {
+    var things = Thing.find({awesome:true}, function() {
+      test.equal(5, things.length)
+      things[0].remove(function() {
+        test.equal(5, things.length)
+        test.done()
+      })
+    }).limit(5)
+  })
+} 
+
+tests['test sorting single key asc'] = function(test) {
+  var Thing = FreshDocuments("things")
+    , i = 0
+
+  Thing.create({order:2}, function() {
+    Thing.create({order:5}, function() {
+      Thing.create({order:3}, function() {
+        Thing.create({order:1}, function() {
+          Thing.create({order:4}, function() {
+            var things = Thing.find({}, function() {
+              test.equal(things[0].get("order"), 1)
+              test.equal(things[1].get("order"), 2)
+              test.equal(things[2].get("order"), 3)
+              test.equal(things[3].get("order"), 4)
+              test.equal(things[4].get("order"), 5)
+              test.done()
+            }).sort({order: 1})
+          })
+        })
+      })
+    })
+  })
+}
+
+tests['test sorting single key desc'] = function(test) {
+  var Thing = FreshDocuments("things")
+    , i = 0
+
+  Thing.create({order:2}, function() {
+    Thing.create({order:5}, function() {
+      Thing.create({order:3}, function() {
+        Thing.create({order:1}, function() {
+          Thing.create({order:4}, function() {
+            var things = Thing.find({}, function() {
+              test.equal(things[0].get("order"), 5)
+              test.equal(things[1].get("order"), 4)
+              test.equal(things[2].get("order"), 3)
+              test.equal(things[3].get("order"), 2)
+              test.equal(things[4].get("order"), 1)
+              test.done()
+            }).sort({order: -1})
+          })
+        })
+      })
+    })
+  })
+} 
+ 
 module.exports = testCase(tests)
