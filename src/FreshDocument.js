@@ -114,12 +114,14 @@ exports.FreshDocument = function(collection, middlewares) {
   FreshDocument.prototype.update = function(doc, fn) {
     var that = this
     this.document = merge(this.document, doc)
-    collection.update({_id: this.document._id}, this.document, function(err) {
-      freshDocuments[that.document._id].forEach(function(doc) {
-        doc._onUpdate(that)
-      })
-      ;(fn || noop)() 
-    })  
+    this._executeMiddleware(fn, function(callback) {
+      collection.update({_id: that.document._id}, that.document, function(err) {
+        freshDocuments[that.document._id].forEach(function(doc) {
+          doc._onUpdate(that)
+        })
+        ;(fn || noop)(null, this) 
+      })  
+    })
   }
 
   FreshDocument.prototype.insert = function(doc, fn) {
@@ -130,7 +132,7 @@ exports.FreshDocument = function(collection, middlewares) {
       collection.insert(that.document, function(err, obj) {
         that._indexById()
         PubHub.pub(that, "add")
-        ;(callback || noop)() 
+        ;(callback || noop)(null, this) 
       }) 
     })
   }

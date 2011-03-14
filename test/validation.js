@@ -22,7 +22,7 @@ tests.tearDown = function(done) {
   done()
 }
 
-tests["validate incorrect length gives error"] = function(test) {
+tests["validate incorrect length gives error on create"] = function(test) {
   var Things = FreshDocuments("things", 
                  Validations({ title: {length: [4, 100], message: "Invalid length"} }))
   Things.create({title: "asd"}, function(err) {
@@ -34,7 +34,7 @@ tests["validate incorrect length gives error"] = function(test) {
   })
 }
 
-tests["validate correct length gives no error and saves"] = function(test) {
+tests["validate correct length gives no error and saves on create"] = function(test) {
   var Things = FreshDocuments("things", 
                  Validations({ title: {length: [4, 100], message: "Invalid length"} }))
   Things.create({title: "valid"}, function(err) {
@@ -46,5 +46,37 @@ tests["validate correct length gives no error and saves"] = function(test) {
     })
   })
 } 
+ 
+tests["validate correct length gives no error on update"] = function(test) {
+  var Things = FreshDocuments("things", 
+                 Validations({ title: {length: [4, 100], message: "Invalid length"} }))
+
+  var thing = Things.create({title: "this is valid"}, function(err) {
+    thing.set("title", "another valid one")
+    thing.save(function() {
+      var things = Things.find({}, function() {
+        test.equal(things.length, 1)
+        test.done()
+      })
+    })
+  })
+}
+
+tests["validate incorrect length gives error on update"] = function(test) {
+  var Things = FreshDocuments("things", 
+                 Validations({ title: {length: [4, 100], message: "Invalid length"} }))
+  var thing = Things.create({title: "valid"}, function(err) {
+    thing.set("title", "x")
+    thing.save(function(err) {
+      test.equal(err.message, "Invalid length")
+      var things = Things.find({}, function() {
+        test.equal(things.length, 1)
+        test.equal(things[0].get("title"), "valid") 
+        test.done()
+      })
+    })
+  })
+} 
+  
 
 module.exports = testCase(tests)
