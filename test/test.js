@@ -256,7 +256,7 @@ tests['test removing maintains limit'] = function(test) {
   })
 } 
 */
-tests['test sorting'] = function(test) {
+tests['test sorting single key asc'] = function(test) {
   var Thing = FreshDocuments("things")
     , i = 0
 
@@ -279,5 +279,29 @@ tests['test sorting'] = function(test) {
     })
   })
 }
+
+tests['test sorting single key desc'] = function(test) {
+  var Thing = FreshDocuments("things")
+    , i = 0
+
+  Thing.create({order:2}, function() {
+    Thing.create({order:5}, function() {
+      Thing.create({order:3}, function() {
+        Thing.create({order:1}, function() {
+          Thing.create({order:4}, function() {
+            var things = Thing.find({}, function() {
+              test.equal(things[0].get("order"), 5)
+              test.equal(things[1].get("order"), 4)
+              test.equal(things[2].get("order"), 3)
+              test.equal(things[3].get("order"), 2)
+              test.equal(things[4].get("order"), 1)
+              test.done()
+            }).sort({order: -1})
+          })
+        })
+      })
+    })
+  })
+} 
  
 module.exports = testCase(tests)

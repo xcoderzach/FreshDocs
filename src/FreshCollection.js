@@ -3,6 +3,10 @@ var EventEmitter = require("events").EventEmitter
   , PubHub = require("./ConditionalPublisher").PubHub
   , FreshCollection
   
+function compare(a, b, desc) {
+  var comparison = a > b
+  return (desc) ? !comparison : comparison
+}
 FreshCollection = exports.FreshCollection = function(conditions, cursor) {
   var i
     , that = this
@@ -49,8 +53,13 @@ FreshCollection.prototype._addDocument = function(item) {
       this.docs.push(item)
     } else {
       key = Object.keys(this._sort)[0]
-      for(i = 0, l = this.length ; i < l ; i++) {
-        if(this.docs[i].document[key] > item.document[key]) {
+      for(i = 0, l = this.length + 1 ; i < l ; i++) {
+        if(i == l - 1) {
+          this[this.length] = item
+          this.docs.push(item)
+          break;
+        }
+        if(compare(this.docs[i].document[key], item.document[key], this._sort[key] < 0)) {
           ;[].splice.call(this, i, 0, item)
           this.docs.splice(i, 0, item)
           break;
