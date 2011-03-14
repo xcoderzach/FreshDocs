@@ -45,6 +45,11 @@ FreshDocuments
   * get and set functions are teh lamez
   * buggy and generally inefficient
 
+## Contributing 
+
+  Any contributions are welcome, features, ideas, bugs, criticism.
+  I would be especially grateful for feedback on the api.
+
 ## Thanks
   Thanks to Chad Seibert and Brian Goslinga (qbg on github) for help with
   brainstorming and implementation details
