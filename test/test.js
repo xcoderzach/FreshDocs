@@ -20,7 +20,7 @@ tests.setUp = function(startTest) {
 tests.tearDown = function(done) {
   done()
 }
-/*
+
 tests['adding things'] = function(test) {
   test.expect(2)
   var Thing = FreshDocuments("things")
@@ -255,7 +255,7 @@ tests['test removing maintains limit'] = function(test) {
     }).limit(5)
   })
 } 
-*/
+
 tests['test sorting single key asc'] = function(test) {
   var Thing = FreshDocuments("things")
     , i = 0
