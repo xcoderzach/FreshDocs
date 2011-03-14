@@ -44,3 +44,7 @@ FreshDocuments
   * Nothing gets GC'd, yeah...badness
   * get and set functions are teh lamez
   * buggy and generally inefficient
+
+## Thanks
+  Thanks to Chad Seibert and Brian Goslinga (qbg on github) for help with
+  brainstorming and implementation details
