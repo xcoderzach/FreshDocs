@@ -3,11 +3,12 @@ var EventEmitter = require("events").EventEmitter
   , PubHub = require("./ConditionalPublisher").PubHub
   , FreshCollection
   
-FreshCollection = exports.FreshCollection = function(conditions) {
+FreshCollection = exports.FreshCollection = function(conditions, cursor) {
 
   var i
     , that = this
 
+  this.cursor = cursor
   this.conditions = conditions
   this.docs = []
   this.__defineGetter__("length", function() { return this.docs.length })
@@ -24,18 +25,26 @@ FreshCollection = exports.FreshCollection = function(conditions) {
 }
 sys.inherits(FreshCollection, EventEmitter)
 
+FreshCollection.prototype.limit = function(n) {
+  this._limit = n
+  this.cursor.limit(n)
+  return this
+}
 
 FreshCollection.prototype._addDocument = function(item) {
-  var that = this
-  this[this.length] = item
-  this.docs.push(item)
+  //if limit - length >= 0 don't add
+  if(!this._limit || this._limit - this.length > 0) {
+    var that = this
+    this[this.length] = item
+    this.docs.push(item)
 
-  item.on("update", function() {
-    var index = that.docs.indexOf(item)
-    that.emit("update", item, index)
-  }) 
+    item.on("update", function() {
+      var index = that.docs.indexOf(item)
+      that.emit("update", item, index)
+    }) 
 
-  this.emit("add", item)
+    this.emit("add", item)
+  }
 }
 
 FreshCollection.prototype._removeDocument = function(removed) {

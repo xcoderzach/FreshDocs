@@ -49,9 +49,11 @@ exports.FreshDocument = function(collection) {
   }
 
   FreshDocument.find = function(conditions, fn) {
-    var freshColl = new FreshCollection(conditions)
+    var cursor = collection.find(conditions).limit(5)
+      , freshColl = new FreshCollection(conditions, cursor)
       , that = this
-    collection.find(conditions).toArray(function(err, arr) {
+    
+    cursor.toArray(function(err, arr) {
       if(arr) {
         arr.forEach(function(item) {
           var doc = FreshDocument._wrapDocument(item)
@@ -60,6 +62,7 @@ exports.FreshDocument = function(collection) {
         fn(freshColl)
       }
     })
+
     return freshColl
   } 
 

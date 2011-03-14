@@ -182,4 +182,24 @@ tests['test findOne'] = function(test) {
   })
 } 
 
+tests['test find with limit'] = function(test) {
+  var Thing = FreshDocuments("things")
+    , i = 0
+    , saveThing = function(done) {
+    if(i < 10) {
+      var thing = new Thing({title:"w00t" + i, awesome:true})
+      thing.save(function() { saveThing(done) })
+      i++
+    } else {
+      done()
+    }
+  }
+  saveThing(function() {
+    var things = Thing.find({awesome:true}, function() {
+      test.equal(5, things.length)
+      test.done()
+    }).limit(5)
+  })
+} 
+
 module.exports = testCase(tests)
