@@ -66,6 +66,12 @@ exports.FreshDocument = function(collection) {
     return freshColl
   } 
 
+  FreshDocument.create = function(doc, fn) {
+    var document = new FreshDocument(doc);
+    document.save(fn || noop)
+    return document
+  } 
+
   FreshDocument.prototype.get = function(key) {
     return this.pending[key] || this.document[key]
   }

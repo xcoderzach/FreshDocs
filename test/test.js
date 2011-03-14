@@ -36,6 +36,18 @@ tests['adding things'] = function(test) {
   })
 }
 
+tests['creating things'] = function(test) {
+  test.expect(2)
+  var Thing = FreshDocuments("things")
+  Thing.create({title:"My title", published: true}, function() {
+    var things = Thing.find({published: true}, function() {
+      test.equal("My title", things[0].get("title"))
+      test.equal(1, things.length)
+      test.done()
+    })
+  })
+}  
+
 tests['test adding thing updates collection'] = function(test) {
   test.expect(3)
   var Thing = FreshDocuments("things")
