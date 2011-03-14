@@ -37,3 +37,10 @@ FreshDocuments
     Document.create({title: "An awesome document", awesome: true})
 
   Updated for you like magic!
+
+## Known Problems (that will be fixed)
+
+  * It's not super efficient for high numbers of collections (linear search)
+  * Nothing gets GC'd, yeah...badness
+  * get and set functions are teh lamez
+  * buggy and generally inefficient
