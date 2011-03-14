@@ -182,4 +182,66 @@ tests['test findOne'] = function(test) {
   })
 } 
 
+tests['test find with limit'] = function(test) {
+  var Thing = FreshDocuments("things")
+    , i = 0
+    , saveThing = function(done) {
+    if(i < 10) {
+      var thing = new Thing({title:"w00t" + i, awesome:true})
+      thing.save(function() {
+        saveThing(done) 
+      })
+      i++
+    } else {
+      done()
+    }
+  }
+  saveThing(function() {
+    var things = Thing.find({awesome:true}, function() {
+      test.equal(5, things.length)
+      test.done()
+    }).limit(5)
+  })
+} 
+
+tests['test inserting maintains limits'] = function(test) {
+  var Thing = FreshDocuments("things")
+    , i
+    , j = 0
+
+  var things = Thing.find({awesome:true}, function() {
+    for(i = 0 ; i < 10 ; i++) {
+      new Thing({title:"w00t" + i, awesome:true}).save(function() {
+        test.equals(things.length <= 5, true)
+        if(++j == 10) {
+          test.done()
+        }
+      })
+    }
+  }).limit(5)
+}  
+ 
+tests['test removing maintains limit'] = function(test) {
+  var Thing = FreshDocuments("things")
+    , i = 0
+    , saveThing = function(done) {
+    if(i < 10) {
+      var thing = new Thing({title:"w00t" + i, awesome:true})
+      thing.save(function() { saveThing(done) })
+      i++
+    } else {
+      done()
+    }
+  }
+  saveThing(function() {
+    var things = Thing.find({awesome:true}, function() {
+      test.equal(5, things.length)
+      things[0].remove(function() {
+        test.equal(5, things.length)
+        test.done()
+      })
+    }).limit(5)
+  })
+} 
+ 
 module.exports = testCase(tests)

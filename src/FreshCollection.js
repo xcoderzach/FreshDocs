@@ -3,13 +3,15 @@ var EventEmitter = require("events").EventEmitter
   , PubHub = require("./ConditionalPublisher").PubHub
   , FreshCollection
   
-FreshCollection = exports.FreshCollection = function(conditions) {
+FreshCollection = exports.FreshCollection = function(conditions, cursor) {
 
   var i
     , that = this
 
+  this.cursor = cursor
   this.conditions = conditions
   this.docs = []
+  this.queue = []
   this.__defineGetter__("length", function() { return this.docs.length })
   this.__defineSetter__("length", function() {})
 
@@ -24,24 +26,33 @@ FreshCollection = exports.FreshCollection = function(conditions) {
 }
 sys.inherits(FreshCollection, EventEmitter)
 
+FreshCollection.prototype.limit = function(n) {
+  this._limit = n
+  this.cursor.limit(n)
+  return this
+}
 
 FreshCollection.prototype._addDocument = function(item) {
-  var that = this
-  this[this.length] = item
-  this.docs.push(item)
+  //if limit - length >= 0 don't add
+  if(!this._limit || this._limit - this.length > 0) {
+    var that = this
 
-  item.on("update", function() {
-    var index = that.docs.indexOf(item)
-    that.emit("update", item, index)
-  }) 
+    this[this.length] = item
+    this.docs.push(item)
 
-  this.emit("add", item)
+    item.on("update", function() {
+      var index = that.docs.indexOf(item)
+      that.emit("update", item, index)
+    }) 
+    this.emit("add", item)
+  } else {
+    this.queue.push(item)
+  }
 }
 
 FreshCollection.prototype._removeDocument = function(removed) {
   var i,
       doc
-
   for(i = 0 ; i < this.docs.length ; i++) {
     doc = this.docs[i]
     if(doc.document._id.id === removed.document._id.id) {
@@ -49,6 +60,10 @@ FreshCollection.prototype._removeDocument = function(removed) {
       this.docs.splice(i, 1)
       this.emit("remove", removed, i)
     }
+  }
+
+  if(this._limit - this.length > 0 && this.queue.length > 0) {
+    this._addDocument(this.queue.shift())
   }
 } 
 
@@ -59,4 +74,3 @@ FreshCollection.prototype.toJSON = function() {
   })
   return arr
 }
- 
