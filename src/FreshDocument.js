@@ -49,7 +49,7 @@ exports.FreshDocument = function(collection) {
   }
 
   FreshDocument.find = function(conditions, fn) {
-    var cursor = collection.find(conditions).limit(5)
+    var cursor = collection.find(conditions)
       , freshColl = new FreshCollection(conditions, cursor)
       , that = this
     
