@@ -20,7 +20,7 @@ tests.setUp = function(startTest) {
 tests.tearDown = function(done) {
   done()
 }
-/*
+
 tests['adding things'] = function(test) {
   test.expect(2)
   var Thing = FreshDocuments("things")
@@ -188,7 +188,9 @@ tests['test find with limit'] = function(test) {
     , saveThing = function(done) {
     if(i < 10) {
       var thing = new Thing({title:"w00t" + i, awesome:true})
-      thing.save(function() { saveThing(done) })
+      thing.save(function() {
+        saveThing(done) 
+      })
       i++
     } else {
       done()
@@ -201,7 +203,24 @@ tests['test find with limit'] = function(test) {
     }).limit(5)
   })
 } 
-*/ 
+
+tests['test inserting maintains limits'] = function(test) {
+  var Thing = FreshDocuments("things")
+    , i
+    , j = 0
+
+  var things = Thing.find({awesome:true}, function() {
+    for(i = 0 ; i < 10 ; i++) {
+      new Thing({title:"w00t" + i, awesome:true}).save(function() {
+        test.equals(things.length <= 5, true)
+        if(++j == 10) {
+          test.done()
+        }
+      })
+    }
+  }).limit(5)
+}  
+ 
 tests['test removing maintains limit'] = function(test) {
   var Thing = FreshDocuments("things")
     , i = 0
