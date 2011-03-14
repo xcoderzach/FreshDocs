@@ -19,3 +19,21 @@ FreshDocuments
     var document = Documents.findById("some object id value")
     document.update({title: "A better title, for our collaborative thing"})
   
+## But hey! What about collections!
+
+  Right, it wouldn't be very useful if your documents stayed up to date,
+  but not your collections!  
+
+  Another Example!
+
+    var documents = Documents.find({awesome: true})
+
+    documents.on("add", function(newDocument) {
+      console.log(newDocument.get("title"))
+    }
+
+  Meanwhile
+
+    Document.create({title: "An awesome document", awesome: true})
+
+  Updated for you like magic!
