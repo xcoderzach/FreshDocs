@@ -40,6 +40,8 @@ exports.FreshDocument = function(collection, middlewares) {
           }
         }
       }
+    } else {
+      done(callback)
     }
   }
 

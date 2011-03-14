@@ -21,11 +21,11 @@ tests.setUp = function(startTest) {
 tests.tearDown = function(done) {
   done()
 }
+
 tests["validate incorrect length gives error"] = function(test) {
   var Things = FreshDocuments("things", 
                  Validations({ title: {length: [4, 100], message: "Invalid length"} }))
   Things.create({title: "asd"}, function(err) {
-    console.log("w00t")
     test.equal(err.message, "Invalid length")
     var things = Things.find({}, function() {
       test.equal(things.length, 0)
@@ -33,5 +33,18 @@ tests["validate incorrect length gives error"] = function(test) {
     })
   })
 }
+
+tests["validate correct length gives no error and saves"] = function(test) {
+  var Things = FreshDocuments("things", 
+                 Validations({ title: {length: [4, 100], message: "Invalid length"} }))
+  Things.create({title: "valid"}, function(err) {
+    test.equal(err, null)
+    var things = Things.find({}, function() {
+      test.equal(things.length, 1)
+      test.equal(things[0].get("title"), "valid") 
+      test.done()
+    })
+  })
+} 
 
 module.exports = testCase(tests)
