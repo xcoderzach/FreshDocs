@@ -15,7 +15,7 @@ function merge(obj, other) {
   return obj
 }
 
-exports.FreshDocument = function(collection) {
+exports.FreshDocument = function(collection, middlewares) {
 
   var FreshDocument = function(document) {
     this._isNew = true
@@ -24,7 +24,27 @@ exports.FreshDocument = function(collection) {
   }
   sys.inherits(FreshDocument, EventEmitter)
 
+  FreshDocument.prototype._executeMiddleware = function(callback, done) {
+    if(middlewares.length != 0) {
+      var i = 0
+      middlewares[0].call(this, next)
+      function next(err) {
+        i++
+        if(err) {
+          callback(err)
+        } else {
+          if(middlewares[i]) {
+            middlewares[i](next)
+          } else {
+            done(callback)
+          }
+        }
+      }
+    }
+  }
+
   FreshDocument.prototype._indexById = function() {
+
     if(Array.isArray(freshDocuments[this.document._id])) {
       freshDocuments[this.document._id].push(this)
     } else {
@@ -104,11 +124,13 @@ exports.FreshDocument = function(collection) {
     var that = this
     this._isNew = false
     this.document = merge(this.document, doc)
-    collection.insert(this.document, function(err, obj) {
-      that._indexById()
-      PubHub.pub(that, "add")
-      ;(fn || noop)() 
-    }) 
+    this._executeMiddleware(fn, function(callback) {
+      collection.insert(that.document, function(err, obj) {
+        that._indexById()
+        PubHub.pub(that, "add")
+        ;(callback || noop)() 
+      }) 
+    })
   }
 
   FreshDocument.prototype.save = function(fn) {
