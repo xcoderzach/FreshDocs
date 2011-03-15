@@ -1,6 +1,6 @@
 require.paths.unshift('/usr/local/lib/node')
 var FreshDocuments = require("../index").FreshDocuments
-  , Validations = require("../src/middleware/validation")
+  , Validations = require("../lib/middleware/validation")
   , testCase = require('nodeunit').testCase
   , DatabaseCleaner = require('/usr/local/lib/node/database-cleaner/lib/database-cleaner') 
   , databaseCleaner = new DatabaseCleaner("mongodb")

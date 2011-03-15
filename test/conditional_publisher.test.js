@@ -2,7 +2,7 @@ require.paths.unshift('/usr/local/lib/node')
 
 var testCase = require('nodeunit').testCase
   , tests = {} 
-  , PubHub = require('../src/ConditionalPublisher').PubHub
+  , PubHub = require('../lib/ConditionalPublisher').PubHub
  
  
 tests.setUp = function(startTest) {
