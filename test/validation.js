@@ -132,5 +132,26 @@ tests["validate regex AND length"] = function(test) {
     }
   })
 }    
+
+tests["validate with custom function"] = function(test) {
+  test.expect(4)
+  var Things = FreshDocuments("things", 
+                 Validations({ title: {custom: {fn: function(field) { if(field == "good") return true }, message: "Does not match fn"}}}))
+  Things.create({title: "good"}, function(err) {
+    test.equal(err, null)
+    var things = Things.find({}, function() {
+      test.equal(things.length, 1)
+      Things.create({title: "bad"}, function(err) {
+        test.equal(err.message, "Does not match fn")
+        var things = Things.find({title: "bad"}, function() {
+          test.equal(things.length, 0)
+          test.done()
+        })
+      }) 
+    })
+  })
+  
+}    
+ 
   
 module.exports = testCase(tests)
