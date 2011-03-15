@@ -28,10 +28,24 @@ tests['embed a document'] = function(test) {
                             , Embed({other: OtherThing}))
   var other = OtherThing.create({name: "myotherThing"}, function() {
     var thing = Thing.create({title:"thingything", other:other}, function() {
-      test.equal(thing.get("other").get("name"), "myotherThing")
+      test.equal(thing.other.get("name"), "myotherThing")
       test.done()
     })
   })
 }
+
+tests['find embedded document'] = function(test) {
+  var OtherThing = FreshDocuments("otherThings")
+  var Thing = FreshDocuments("things"
+                            , Embed({other: OtherThing}))
+  var other = OtherThing.create({name: "myotherThing"}, function() {
+    Thing.create({title:"thingything", other:other}, function() {
+      Thing.findOne({title:"thingything"}, function(thing) {
+        test.equal(thing.other.get("name"), "myotherThing")
+        test.done()
+      })
+    })
+  })
+} 
 
 module.exports = testCase(tests)
