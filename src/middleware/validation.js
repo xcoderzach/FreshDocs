@@ -6,7 +6,12 @@ exports = module.exports = function Validation(options) {
          document[field].length > params.between[1]) {
         return params.message || "invalid length";
       }
-    }
+    },
+    regex: function(field, params, document) {
+      if(!params.match.test(document[field])) {
+        return params.message || "Does not match specified pattern";
+      }
+    } 
   }
 
   return function(next) {
@@ -24,6 +29,4 @@ exports = module.exports = function Validation(options) {
       })
     })
   }
-
-
 }

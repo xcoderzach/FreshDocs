@@ -76,6 +76,18 @@ tests["validate incorrect length gives error on update"] = function(test) {
     })
   })
 } 
-  
+
+tests["validate with regex"] = function(test) {
+  var Things = FreshDocuments("things", 
+                 Validations({ title: {regex: {match:/^title.*$/i, message: "Invalid length"}}}))
+  Things.create({title: "title10"}, function(err) {
+    test.equal(err, null)
+    var things = Things.find({}, function() {
+      test.equal(things.length, 1)
+      test.equal(things[0].get("title"), "title10") 
+      test.done()
+    })
+  })
+}    
 
 module.exports = testCase(tests)
