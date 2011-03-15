@@ -89,5 +89,28 @@ tests["validate with regex"] = function(test) {
     })
   })
 }    
+ 
+tests["validate regex AND length"] = function(test) {
+  var Things = FreshDocuments("things", 
+                 Validations({ title: { regex: {match:/^title.*$/i, message: "Invalid length"}
+                                      , length: { between: [4, 100], message: "Doesn't Match"}}}))
+    , testCount = 0
+  Things.create({title: "x"}, function(err) {
+    if(err.message === "Doesn't Match") {
+      test.equal(err.message, "Doesn't Match")
+      testCount++
+    } else if (err.message === "Invalid length") {
+      test.equal(err.message, "Invalid length")
+      testCount++
+    } else {
+      test.equal(true, false) //Failamanjaro!
+      testCount++
+    }
 
+    if(testCount === 2) {
+      test.done()
+    }
+  })
+}    
+  
 module.exports = testCase(tests)

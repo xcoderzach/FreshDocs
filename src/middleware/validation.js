@@ -6,27 +6,33 @@ exports = module.exports = function Validation(options) {
          document[field].length > params.between[1]) {
         return params.message || "invalid length";
       }
+      return false
     },
     regex: function(field, params, document) {
       if(!params.match.test(document[field])) {
         return params.message || "Does not match specified pattern";
       }
+      return false
     } 
   }
 
   return function(next) {
     var that = this
-    var fields = Object.keys(options)
+      , fields = Object.keys(options)
+      , errors = false
+      , err
     fields.forEach(function(field) {
       var criteria = Object.keys(options[field])
       criteria.forEach(function(criterion) {
-        var err = validator[criterion](field, options[field][criterion], that.document)
+        err = validator[criterion](field, options[field][criterion], that.document)
         if(err) {
+          errors = true
           next(new Error(err))
-        } else {
-          next() 
         }
       })
     })
+    if(!errors) {
+      next() 
+    }
   }
 }
