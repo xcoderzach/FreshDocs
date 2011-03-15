@@ -52,6 +52,17 @@ FreshDocuments - MongoDB ODM v0.0.2
 
   Blam your titles have to be between 4 and 100 characters
 
+## Embedded Documents
+
+  Embedding documents is easy with the Embed middleware.
+    var OtherThing = FreshDocuments("others")
+    var Things = FreshDocuments("things", 
+                                 Embed({other: OtherThing}) //one other thing
+
+    var Things = FreshDocuments("things", 
+                                 Embed({others: [OtherThing]}) //many other things
+                                             
+
 ## Documentation 
  
   Yes, the documentation is pretty bad right now, It'll get updated as soon as the api
