@@ -1,4 +1,4 @@
-FreshDocuments - MongoDB ODM v0.0.2
+FreshDocuments - MongoDB ODM v0.0.3
 ===================================
 
 ####FreshDocs makes sure that your documents never get stale
