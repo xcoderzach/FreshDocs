@@ -90,6 +90,18 @@ tests["validate with regex"] = function(test) {
   })
 }    
  
+tests["invalidate with regex"] = function(test) {
+  var Things = FreshDocuments("things", 
+                 Validations({ title: {regex: {match:/^title.*$/i, message: "Does not match pattern"}}}))
+  Things.create({title: "bitle10"}, function(err) {
+    test.equal(err.message, "Does not match pattern")
+    var things = Things.find({}, function() {
+      test.equal(things.length, 0)
+      test.done()
+    })
+  })
+}    
+ 
 tests["validate regex AND length"] = function(test) {
   var Things = FreshDocuments("things", 
                  Validations({ title: { regex: {match:/^title.*$/i, message: "Invalid length"}
