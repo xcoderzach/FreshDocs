@@ -1,4 +1,4 @@
-FreshDocuments - MongoDB ODM v0.0.2
+FreshDocuments - MongoDB ODM v0.0.3
 ===================================
 
 ####FreshDocs makes sure that your documents never get stale
@@ -51,6 +51,17 @@ FreshDocuments - MongoDB ODM v0.0.2
                                                          , message: "Invalid length"}}})) 
 
   Blam your titles have to be between 4 and 100 characters
+
+## Embedded Documents
+
+  Embedding documents is easy with the Embed middleware.
+    var OtherThing = FreshDocuments("others")
+    var Things = FreshDocuments("things", 
+                                 Embed({other: OtherThing}) //one other thing
+
+    var Things = FreshDocuments("things", 
+                                 Embed({others: [OtherThing]}) //many other things
+                                             
 
 ## Documentation 
  
