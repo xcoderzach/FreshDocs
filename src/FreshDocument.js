@@ -15,7 +15,7 @@ function merge(obj, other) {
   return obj
 }
 
-exports.FreshDocument = function(collection) {
+exports.FreshDocument = function(collection, middlewares) {
 
   var FreshDocument = function(document) {
     this._isNew = true
@@ -24,7 +24,29 @@ exports.FreshDocument = function(collection) {
   }
   sys.inherits(FreshDocument, EventEmitter)
 
+  FreshDocument.prototype._executeMiddleware = function(callback, done) {
+    if(middlewares.length != 0) {
+      var i = 0
+      middlewares[0].call(this, next)
+      function next(err) {
+        i++
+        if(err) {
+          callback(err)
+        } else {
+          if(middlewares[i]) {
+            middlewares[i](next)
+          } else {
+            done(callback)
+          }
+        }
+      }
+    } else {
+      done(callback)
+    }
+  }
+
   FreshDocument.prototype._indexById = function() {
+
     if(Array.isArray(freshDocuments[this.document._id])) {
       freshDocuments[this.document._id].push(this)
     } else {
@@ -92,23 +114,27 @@ exports.FreshDocument = function(collection) {
   FreshDocument.prototype.update = function(doc, fn) {
     var that = this
     this.document = merge(this.document, doc)
-    collection.update({_id: this.document._id}, this.document, function(err) {
-      freshDocuments[that.document._id].forEach(function(doc) {
-        doc._onUpdate(that)
-      })
-      ;(fn || noop)() 
-    })  
+    this._executeMiddleware(fn, function(callback) {
+      collection.update({_id: that.document._id}, that.document, function(err) {
+        freshDocuments[that.document._id].forEach(function(doc) {
+          doc._onUpdate(that)
+        })
+        ;(fn || noop)(null, this) 
+      })  
+    })
   }
 
   FreshDocument.prototype.insert = function(doc, fn) {
     var that = this
     this._isNew = false
     this.document = merge(this.document, doc)
-    collection.insert(this.document, function(err, obj) {
-      that._indexById()
-      PubHub.pub(that, "add")
-      ;(fn || noop)() 
-    }) 
+    this._executeMiddleware(fn, function(callback) {
+      collection.insert(that.document, function(err, obj) {
+        that._indexById()
+        PubHub.pub(that, "add")
+        ;(callback || noop)(null, this) 
+      }) 
+    })
   }
 
   FreshDocument.prototype.save = function(fn) {
