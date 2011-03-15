@@ -1,0 +1,20 @@
+{
+  "name": "FreshDocs"
+, "description": "MongoDB ODM that keeps your docs from getting stale",
+  "version": "0.0.2"
+, "repository": {
+    "type": "git"
+  , "url": "git://github.com/xcoderzach/FreshDocs.git"
+  },
+  "author": "Zach Smith <x.coder.zach@gmail.com>"
+, "main": "index.js"
+, "directories": {
+    "lib": "."
+  }
+, "scripts": {
+    "test": "nodeunit test/*"
+  }
+, "engines": {
+    "node": "*"
+  }
+}
