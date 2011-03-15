@@ -48,4 +48,42 @@ tests['find embedded document'] = function(test) {
   })
 } 
 
+tests['embed a collection'] = function(test) {
+  var OtherThing = FreshDocuments("otherThings")
+  var Thing = FreshDocuments("things"
+                            , Embed({other: [OtherThing]}))
+  var other = OtherThing.create({name: "myotherThing"}, function() {
+    var other2 = OtherThing.create({name: "myotherThing2"}, function() {
+      var thing = Thing.create({title:"thingything", other:[other, other2]}, function() {
+        test.equal(thing.other[0].get("name"), "myotherThing")
+        test.equal(thing.other[1].get("name"), "myotherThing2")
+        test.done()
+      })
+    })
+  })
+}
+
+tests['find an embedded collection'] = function(test) {
+  var OtherThing = FreshDocuments("otherThings")
+  var Thing = FreshDocuments("things"
+                            , Embed({other: [OtherThing]}))
+  var other = OtherThing.create({name: "myotherThing"}, function() {
+    var other2 = OtherThing.create({name: "myotherThing2"}, function() {
+      var thing = Thing.create({title:"thingything", other:[other, other2]}, function() {
+        Thing.findOne({title: "thingything"}, function(thing) {
+          test.equal(thing.other[0].get("name"), "myotherThing")
+          test.equal(thing.other[1].get("name"), "myotherThing2")
+
+          var things = Thing.find({title: "thingything"}, function() {
+            test.equal(things[0].other[0].get("name"), "myotherThing")
+            test.equal(things[0].other[1].get("name"), "myotherThing2")
+            test.done()
+          }) 
+        })
+      })
+    })
+  })
+}
+ 
+
 module.exports = testCase(tests)

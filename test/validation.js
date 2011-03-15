@@ -35,6 +35,7 @@ tests["validate incorrect length gives error on create"] = function(test) {
   })
 }
 
+
 tests["validate correct length gives no error and saves on create"] = function(test) {
   test.expect(3)
   var Things = FreshDocuments("things", 

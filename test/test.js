@@ -199,8 +199,7 @@ tests['test find with limit'] = function(test) {
     , i = 0
     , saveThing = function(done) {
     if(i < 10) {
-      var thing = new Thing({title:"w00t" + i, awesome:true})
-      thing.save(function() {
+      var thing = new Thing.create({title:"w00t" + i, awesome:true}, function() {
         saveThing(done) 
       })
       i++
