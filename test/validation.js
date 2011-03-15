@@ -24,7 +24,7 @@ tests.tearDown = function(done) {
 
 tests["validate incorrect length gives error on create"] = function(test) {
   var Things = FreshDocuments("things", 
-                 Validations({ title: {length: [4, 100], message: "Invalid length"} }))
+                 Validations({ title: {length: {between: [4, 100], message: "Invalid length"}}}))
   Things.create({title: "asd"}, function(err) {
     test.equal(err.message, "Invalid length")
     var things = Things.find({}, function() {
@@ -36,7 +36,7 @@ tests["validate incorrect length gives error on create"] = function(test) {
 
 tests["validate correct length gives no error and saves on create"] = function(test) {
   var Things = FreshDocuments("things", 
-                 Validations({ title: {length: [4, 100], message: "Invalid length"} }))
+                 Validations({ title: {length: {between: [4, 100], message: "Invalid length"}}}))
   Things.create({title: "valid"}, function(err) {
     test.equal(err, null)
     var things = Things.find({}, function() {
@@ -49,8 +49,7 @@ tests["validate correct length gives no error and saves on create"] = function(t
  
 tests["validate correct length gives no error on update"] = function(test) {
   var Things = FreshDocuments("things", 
-                 Validations({ title: {length: [4, 100], message: "Invalid length"} }))
-
+                 Validations({ title: {length: {between: [4, 100], message: "Invalid length"}}}))
   var thing = Things.create({title: "this is valid"}, function(err) {
     thing.set("title", "another valid one")
     thing.save(function() {
@@ -64,7 +63,7 @@ tests["validate correct length gives no error on update"] = function(test) {
 
 tests["validate incorrect length gives error on update"] = function(test) {
   var Things = FreshDocuments("things", 
-                 Validations({ title: {length: [4, 100], message: "Invalid length"} }))
+                 Validations({ title: {length: {between: [4, 100], message: "Invalid length"}}}))
   var thing = Things.create({title: "valid"}, function(err) {
     thing.set("title", "x")
     thing.save(function(err) {
