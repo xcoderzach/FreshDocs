@@ -38,6 +38,26 @@ FreshDocuments - MongoDB ODM
 
   Updated for you like magic!
 
+## Validations
+ 
+  So you need to validate your data? Cool, we can do that.
+
+  When you're creating a FreshDocument instance, you just pass the validation
+  middleware in with your validations
+
+    var Things = FreshDocuments("things", 
+                                 Validations({ title: 
+                                               { length: { between: [4, 100]
+                                                         , message: "Invalid length"}}})) 
+
+  Blam your titles have to be between 4 and 100 characters
+
+## Documentation 
+ 
+  Yes, the documentation is pretty bad right now, It'll get updated as soon as the api
+  stabilizes. :-D
+
+
 ## Known Problems (that will be fixed)
 
   * It's not super efficient for high numbers of collections (linear search)
@@ -53,8 +73,11 @@ FreshDocuments - MongoDB ODM
   I would be especially grateful for feedback on the api.
 
 ## Thanks
+
   Thanks to Chad Seibert and Brian Goslinga (qbg on github) for help with
   brainstorming and implementation details
 
-  Also thanks to marcello3d for making the awesome
+  Also thanks to marcello3d for making the awesome Mongolian
   https://github.com/marcello3d/node-mongolian mongodb driver
+
+
