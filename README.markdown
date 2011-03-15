@@ -1,5 +1,5 @@
-FreshDocuments
-===============
+FreshDocuments - MongoDB ODM
+============================
 
 ####FreshDocs makes sure that your documents never get stale
 
@@ -44,6 +44,8 @@ FreshDocuments
   * Nothing gets GC'd, yeah...badness
   * get and set functions are teh lamez
   * buggy and generally inefficient
+  * The test suite will randomly fail about 1/50 runs, I havent seen this
+    problem when used in actual use
 
 ## Contributing 
 
@@ -53,3 +55,6 @@ FreshDocuments
 ## Thanks
   Thanks to Chad Seibert and Brian Goslinga (qbg on github) for help with
   brainstorming and implementation details
+
+  Also thanks to marcello3d for making the awesome
+  https://github.com/marcello3d/node-mongolian mongodb driver
