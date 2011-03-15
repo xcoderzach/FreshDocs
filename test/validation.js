@@ -23,6 +23,7 @@ tests.tearDown = function(done) {
 }
 
 tests["validate incorrect length gives error on create"] = function(test) {
+  test.expect(2)
   var Things = FreshDocuments("things", 
                  Validations({ title: {length: {between: [4, 100], message: "Invalid length"}}}))
   Things.create({title: "asd"}, function(err) {
@@ -35,6 +36,7 @@ tests["validate incorrect length gives error on create"] = function(test) {
 }
 
 tests["validate correct length gives no error and saves on create"] = function(test) {
+  test.expect(3)
   var Things = FreshDocuments("things", 
                  Validations({ title: {length: {between: [4, 100], message: "Invalid length"}}}))
   Things.create({title: "valid"}, function(err) {
@@ -48,6 +50,7 @@ tests["validate correct length gives no error and saves on create"] = function(t
 } 
  
 tests["validate correct length gives no error on update"] = function(test) {
+  test.expect(1)
   var Things = FreshDocuments("things", 
                  Validations({ title: {length: {between: [4, 100], message: "Invalid length"}}}))
   var thing = Things.create({title: "this is valid"}, function(err) {
@@ -62,6 +65,7 @@ tests["validate correct length gives no error on update"] = function(test) {
 }
 
 tests["validate incorrect length gives error on update"] = function(test) {
+  test.expect(3)
   var Things = FreshDocuments("things", 
                  Validations({ title: {length: {between: [4, 100], message: "Invalid length"}}}))
   var thing = Things.create({title: "valid"}, function(err) {
@@ -78,6 +82,7 @@ tests["validate incorrect length gives error on update"] = function(test) {
 } 
 
 tests["validate with regex"] = function(test) {
+  test.expect(3)
   var Things = FreshDocuments("things", 
                  Validations({ title: {regex: {match:/^title.*$/i, message: "Invalid length"}}}))
   Things.create({title: "title10"}, function(err) {
@@ -89,5 +94,42 @@ tests["validate with regex"] = function(test) {
     })
   })
 }    
+ 
+tests["invalidate with regex"] = function(test) {
+  test.expect(2)
+  var Things = FreshDocuments("things", 
+                 Validations({ title: {regex: {match:/^title.*$/i, message: "Does not match pattern"}}}))
+  Things.create({title: "bitle10"}, function(err) {
+    test.equal(err.message, "Does not match pattern")
+    var things = Things.find({}, function() {
+      test.equal(things.length, 0)
+      test.done()
+    })
+  })
+}    
+ 
+tests["validate regex AND length"] = function(test) {
+  test.expect(2)
+  var Things = FreshDocuments("things", 
+                 Validations({ title: { regex: {match:/^title.*$/i, message: "Invalid length"}
+                                      , length: { between: [4, 100], message: "Doesn't Match"}}}))
+    , testCount = 0
+  Things.create({title: "x"}, function(err) {
+    if(err.message === "Doesn't Match") {
+      test.equal(err.message, "Doesn't Match")
+      testCount++
+    } else if (err.message === "Invalid length") {
+      test.equal(err.message, "Invalid length")
+      testCount++
+    } else {
+      test.equal(true, false) //Failamanjaro!
+      testCount++
+    }
 
+    if(testCount === 2) {
+      test.done()
+    }
+  })
+}    
+  
 module.exports = testCase(tests)
