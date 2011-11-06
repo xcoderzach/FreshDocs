@@ -6,4 +6,4 @@ var Mongolian = require("mongolian")
 exports.FreshDocuments = function(name) {
   var middlewares = [].slice.call(arguments, 1)
   return FreshDocument(db.collection(name), middlewares)
-}
+  }

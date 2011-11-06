@@ -1,7 +1,6 @@
-require.paths.unshift('/usr/local/lib/node')
 var FreshDocuments = require("../index").FreshDocuments
   , testCase = require('nodeunit').testCase
-  , DatabaseCleaner = require('/usr/local/lib/node/database-cleaner/lib/database-cleaner') 
+  , DatabaseCleaner = require('database-cleaner') 
   , databaseCleaner = new DatabaseCleaner("mongodb")
   , tests = {} 
   , mongodb = require("mongodb")
@@ -9,6 +8,16 @@ var FreshDocuments = require("../index").FreshDocuments
   , Server = mongodb.Server
   , client = new Db('awesome', new Server("127.0.0.1", 27017, {}))
   , Embed = require("../lib/middleware/embeddedDocuments")
+ 
+function randomCollectionName () {
+  var s = ""
+    , rand
+  for (var i = 0; i < 12; i++) {
+    rand = 97 + Math.floor(Math.random()*(122 - 97))
+    s += String.fromCharCode(rand)
+  };
+  return s
+}
  
 tests.setUp = function(startTest) {
   client.open(function(err) {
@@ -24,7 +33,7 @@ tests.tearDown = function(done) {
 
 tests['embed a document'] = function(test) {
   var OtherThing = FreshDocuments("otherThings")
-  var Thing = FreshDocuments("things"
+  var Thing = FreshDocuments(randomCollectionName()
                             , Embed({other: OtherThing}))
   var other = OtherThing.create({name: "myotherThing"}, function() {
     var thing = Thing.create({title:"thingything", other:other}, function() {
@@ -36,7 +45,7 @@ tests['embed a document'] = function(test) {
 
 tests['find embedded document'] = function(test) {
   var OtherThing = FreshDocuments("otherThings")
-  var Thing = FreshDocuments("things"
+  var Thing = FreshDocuments(randomCollectionName()
                             , Embed({other: OtherThing}))
   var other = OtherThing.create({name: "myotherThing"}, function() {
     Thing.create({title:"thingything", other:other}, function() {
@@ -50,7 +59,7 @@ tests['find embedded document'] = function(test) {
 
 tests['embed a collection'] = function(test) {
   var OtherThing = FreshDocuments("otherThings")
-  var Thing = FreshDocuments("things"
+  var Thing = FreshDocuments(randomCollectionName()
                             , Embed({other: [OtherThing]}))
   var other = OtherThing.create({name: "myotherThing"}, function() {
     var other2 = OtherThing.create({name: "myotherThing2"}, function() {
@@ -65,7 +74,7 @@ tests['embed a collection'] = function(test) {
 
 tests['find an embedded collection'] = function(test) {
   var OtherThing = FreshDocuments("otherThings")
-  var Thing = FreshDocuments("things"
+  var Thing = FreshDocuments(randomCollectionName()
                             , Embed({other: [OtherThing]}))
   var other = OtherThing.create({name: "myotherThing"}, function() {
     var other2 = OtherThing.create({name: "myotherThing2"}, function() {

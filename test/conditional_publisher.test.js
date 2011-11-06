@@ -1,5 +1,3 @@
-require.paths.unshift('/usr/local/lib/node')
-
 var testCase = require('nodeunit').testCase
   , tests = {} 
   , PubHub = require('../lib/ConditionalPublisher').PubHub

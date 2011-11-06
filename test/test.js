@@ -1,19 +1,23 @@
-require.paths.unshift('/usr/local/lib/node')
 var FreshDocuments = require("../index").FreshDocuments
   , testCase = require('nodeunit').testCase
-  , DatabaseCleaner = require('/usr/local/lib/node/database-cleaner/lib/database-cleaner') 
+  , DatabaseCleaner = require('database-cleaner') 
   , databaseCleaner = new DatabaseCleaner("mongodb")
   , tests = {} 
-  , mongodb = require("mongodb")
-  , Db = mongodb.Db
-  , Server = mongodb.Server
-  , client = new Db('awesome', new Server("127.0.0.1", 27017, {}))
+  , connect = require("mongodb").connect
+
+function randomCollectionName () {
+  var s = ""
+    , rand
+  for (var i = 0; i < 12; i++) {
+    rand = 97 + Math.floor(Math.random()*(122 - 97))
+    s += String.fromCharCode(rand)
+  };
+  return s
+}
 
 tests.setUp = function(startTest) {
-  client.open(function(err) {
-    databaseCleaner.clean(client, function() {
-        startTest()
-    })
+  connect('mongodb://localhost/awesome', function(err, client) { 
+    databaseCleaner.clean(client, startTest)
   })
 }
 
@@ -23,7 +27,7 @@ tests.tearDown = function(done) {
 
 tests['adding things'] = function(test) {
   test.expect(2)
-  var Thing = FreshDocuments("things")
+  var Thing = FreshDocuments(randomCollectionName())
     , thing = new Thing({title:"My title", published: true})
     , run = false
 
@@ -38,7 +42,7 @@ tests['adding things'] = function(test) {
 
 tests['creating things'] = function(test) {
   test.expect(2)
-  var Thing = FreshDocuments("things")
+  var Thing = FreshDocuments(randomCollectionName())
   Thing.create({title:"My title", published: true}, function() {
     var things = Thing.find({published: true}, function() {
       test.equal("My title", things[0].get("title"))
@@ -50,7 +54,7 @@ tests['creating things'] = function(test) {
 
 tests['test adding thing updates collection'] = function(test) {
   test.expect(3)
-  var Thing = FreshDocuments("things")
+  var Thing = FreshDocuments(randomCollectionName())
     , thing = new Thing({title:"Myitle", published: true})
     , newThing = new Thing({title:"Another title", published: true})
     , unpubd = new Thing({title:"Not ready", published: false})
@@ -71,7 +75,7 @@ tests['test adding thing updates collection'] = function(test) {
 
 tests['test removing thing updates collection'] = function(test) {
   test.expect(2)
-  var Thing = FreshDocuments("things")
+  var Thing = FreshDocuments(randomCollectionName())
   var thing = new Thing({title:"Myitle", published: true})
   thing.save(function() {
     var things = Thing.find({published: true}, function() {
@@ -86,7 +90,7 @@ tests['test removing thing updates collection'] = function(test) {
 
 tests['test changing a thing updates all instances of the thing'] = function(test) {
   test.expect(2)
-  var Thing = FreshDocuments("things")
+  var Thing = FreshDocuments(randomCollectionName())
   var thing = new Thing({title:"Myitle", published: true})
 
   thing.save(function() {
@@ -103,7 +107,7 @@ tests['test changing a thing updates all instances of the thing'] = function(tes
 
 tests['create events are called'] = function(test) {
   test.expect(1)
-  var Thing = FreshDocuments("things")
+  var Thing = FreshDocuments(randomCollectionName())
   var thing = new Thing({title:"Myitle", published: true})
   //add a thing
   var things = Thing.find({published: true}, function() {
@@ -117,7 +121,7 @@ tests['create events are called'] = function(test) {
 
 tests['remove events are called'] = function(test) {
   test.expect(1)
-  var Thing = FreshDocuments("things")
+  var Thing = FreshDocuments(randomCollectionName())
   var thing = new Thing({title:"Myitle", published: true})
   Thing.find({published: true}, function(things) {
     things.once("remove", function(removed) {
@@ -131,7 +135,7 @@ tests['remove events are called'] = function(test) {
 
 tests['Document should fire event when it gets removed'] = function(test) {
   test.expect(1)
-  var Thing = FreshDocuments("things")
+  var Thing = FreshDocuments(randomCollectionName())
   var thing = new Thing({title:"Myitle", published: true})
   thing.on("remove", function() {
     test.equal("w00t", "w00t")
@@ -144,7 +148,7 @@ tests['Document should fire event when it gets removed'] = function(test) {
  
 tests['Document should fire event when it gets updated'] = function(test) {
   test.expect(1)
-  var Thing = FreshDocuments("things")
+  var Thing = FreshDocuments(randomCollectionName())
   var thing = new Thing({title:"Myitle", published: true})
   thing.on("update", function() {
     test.equal("w00t", "w00t")
@@ -158,7 +162,7 @@ tests['Document should fire event when it gets updated'] = function(test) {
 
 tests['Collection should fire event when a member gets updated'] = function(test) {
   test.expect(1)
-  var Thing = FreshDocuments("things")
+  var Thing = FreshDocuments(randomCollectionName())
   var thing = new Thing({title:"Myitle", published: true})
   thing.save(function() {
     var things = Thing.find({published: true}, function() {
@@ -173,7 +177,7 @@ tests['Collection should fire event when a member gets updated'] = function(test
 }  
 
 tests['test inserting with a self generated _id'] = function(test) {
-  var Thing = FreshDocuments("things")
+  var Thing = FreshDocuments(randomCollectionName())
   var thing = new Thing({title:"w00t", published: true, _id: {id: "4d7d244deb6eb0505800000a"} })
   thing.save(function() {
     var things = Thing.find({title:"w00t"}, function() {
@@ -184,7 +188,7 @@ tests['test inserting with a self generated _id'] = function(test) {
 }
 
 tests['test findOne'] = function(test) {
-  var Thing = FreshDocuments("things")
+  var Thing = FreshDocuments(randomCollectionName())
   var thing = new Thing({title:"w00t", author: "dudeguy"})
   thing.save(function() {
     Thing.findOne({title:"w00t"}, function(found) {
@@ -195,7 +199,7 @@ tests['test findOne'] = function(test) {
 } 
 
 tests['test find with limit'] = function(test) {
-  var Thing = FreshDocuments("things")
+  var Thing = FreshDocuments(randomCollectionName())
     , i = 0
     , saveThing = function(done) {
     if(i < 10) {
@@ -216,7 +220,7 @@ tests['test find with limit'] = function(test) {
 } 
 
 tests['test inserting maintains limits'] = function(test) {
-  var Thing = FreshDocuments("things")
+  var Thing = FreshDocuments(randomCollectionName())
     , i
     , j = 0
 
@@ -233,7 +237,7 @@ tests['test inserting maintains limits'] = function(test) {
 }  
  
 tests['test removing maintains limit'] = function(test) {
-  var Thing = FreshDocuments("things")
+  var Thing = FreshDocuments(randomCollectionName())
     , i = 0
     , saveThing = function(done) {
     if(i < 10) {
@@ -256,7 +260,7 @@ tests['test removing maintains limit'] = function(test) {
 } 
 
 tests['test sorting single key asc'] = function(test) {
-  var Thing = FreshDocuments("things")
+  var Thing = FreshDocuments(randomCollectionName())
     , i = 0
 
   Thing.create({order:2}, function() {
@@ -280,7 +284,7 @@ tests['test sorting single key asc'] = function(test) {
 }
 
 tests['test sorting single key desc'] = function(test) {
-  var Thing = FreshDocuments("things")
+  var Thing = FreshDocuments(randomCollectionName())
     , i = 0
 
   Thing.create({order:2}, function() {
