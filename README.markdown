@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/xcoderzach/FreshDocs.png)](http://travis-ci.org/xcoderzach/FreshDocs)
 FreshDocuments - MongoDB ODM v0.0.3
 ===================================
 
